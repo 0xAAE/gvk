@@ -35,24 +35,26 @@ fn build_ui(application: &gtk::Application) {
             let item = item.downcast_ref::<RowData>().expect("Row data is of wrong type");
             let vbox = gtk::Box::new(gtk::Orientation::Vertical, 5);
 
-            // let header = gtk::HeaderBar::new();
-            // item.bind_property("author", &header, "title")
-            //     .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
-            //     .build();
-            // author
-            let lbl_author = gtk::Label::new(None);
-            item.bind_property("author", &lbl_author, "label")
+            let header = gtk::HeaderBar::new();
+            item.bind_property("title", &header, "title")
                 .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
                 .build();
-            vbox.pack_start(&lbl_author, true, true, 0);
-            // title
-            let lbl_title = gtk::Label::new(None);
-            item.bind_property("title", &lbl_title, "label")
+            item.bind_property("author", &header, "subtitle")
                 .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
                 .build();
-            vbox.pack_start(&lbl_title, true, true, 0);
+            vbox.pack_start(&header, true, true, 5);
+
+            // datetime
+            let lbl_datetime = gtk::Label::new(None);
+            lbl_datetime.set_halign(gtk::Align::Start);
+            item.bind_property("datetime", &lbl_datetime, "label")
+                .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
+                .build();
+            vbox.pack_start(&lbl_datetime, true, true, 0);
+
             // content
             let lbl_content = gtk::Label::new(None);
+            lbl_content.set_halign(gtk::Align::Start);
             item.bind_property("content", &lbl_content, "label")
                 .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
                 .build();
@@ -67,8 +69,9 @@ fn build_ui(application: &gtk::Application) {
     let local: chrono::DateTime<Local> = Local::now();
     for i in 0..40 {
         news_item_model.append(&RowData::new(
-            &format!("Author {} @ {}", i, local),
+            &format!("Author {}", i),
             &format!("Title {}", i),
+            &format!("{}", local),
             &format!("Content {}", i),
         ));
     }

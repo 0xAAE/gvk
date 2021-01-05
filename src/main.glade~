@@ -404,7 +404,7 @@ Author: 0xAAE
           </packing>
         </child>
         <child>
-          <object class="GtkOverlay" id="right_pane">
+          <object class="GtkStack" id="right_pane">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <child>
@@ -427,30 +427,8 @@ Author: 0xAAE
                 </child>
               </object>
               <packing>
-                <property name="index">-1</property>
-              </packing>
-            </child>
-            <child type="overlay">
-              <object class="GtkScrolledWindow" id="view_chats">
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="shadow-type">in</property>
-                <child>
-                  <placeholder/>
-                </child>
-              </object>
-            </child>
-            <child type="overlay">
-              <object class="GtkScrolledWindow" id="view_search">
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="shadow-type">in</property>
-                <child>
-                  <placeholder/>
-                </child>
-              </object>
-              <packing>
-                <property name="index">1</property>
+                <property name="name">page0</property>
+                <property name="title" translatable="yes">page0</property>
               </packing>
             </child>
           </object>

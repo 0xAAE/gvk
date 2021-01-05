@@ -19,11 +19,12 @@ mod imp {
     pub struct RowData {
         author: RefCell<Option<String>>,
         title: RefCell<Option<String>>,
+        datetime: RefCell<Option<String>>,
         content: RefCell<Option<String>>,
     }
 
     // GObject property definitions for our three values
-    static PROPERTIES: [subclass::Property; 3] = [
+    static PROPERTIES: [subclass::Property; 4] = [
         subclass::Property("author", |author| {
             glib::ParamSpec::string(
                 author,
@@ -39,6 +40,16 @@ mod imp {
                 title,
                 "Title",
                 "Title",
+                // Default value
+                None,
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("datetime", |datetime| {
+            glib::ParamSpec::string(
+                datetime,
+                "Datetime",
+                "Datetime",
                 // Default value
                 None,
                 glib::ParamFlags::READWRITE,
@@ -79,6 +90,7 @@ mod imp {
             Self {
                 author: RefCell::new(None),
                 title: RefCell::new(None),
+                datetime: RefCell::new(None),
                 content: RefCell::new(None),
             }
         }
@@ -100,19 +112,25 @@ mod imp {
                 subclass::Property("author", ..) => {
                     let author = value
                         .get()
-                        .expect("type conformity checked by `Object::set_property`");
+                        .expect("author type conformity checked by `Object::set_property`");
                     self.author.replace(author);
                 }
                 subclass::Property("title", ..) => {
                     let title = value
                         .get()
-                        .expect("type conformity checked by `Object::set_property`");
+                        .expect("title type conformity checked by `Object::set_property`");
                     self.title.replace(title);
+                }
+                subclass::Property("datetime", ..) => {
+                    let datetime = value
+                        .get()
+                        .expect("datetime type conformity checked by `Object::set_property`");
+                    self.datetime.replace(datetime);
                 }
                 subclass::Property("content", ..) => {
                     let content = value
                         .get()
-                        .expect("type conformity checked by `Object::set_property`");
+                        .expect("content type conformity checked by `Object::set_property`");
                     self.content.replace(content);
                 }
                 _ => unimplemented!(),
@@ -125,6 +143,7 @@ mod imp {
             match *prop {
                 subclass::Property("author", ..) => Ok(self.author.borrow().to_value()),
                 subclass::Property("title", ..) => Ok(self.title.borrow().to_value()),
+                subclass::Property("datetime", ..) => Ok(self.datetime.borrow().to_value()),
                 subclass::Property("content", ..) => Ok(self.content.borrow().to_value()),
                 _ => unimplemented!(),
             }
@@ -145,12 +164,13 @@ glib_wrapper! {
 // Constructor for new instances. This simply calls glib::Object::new() with
 // initial values for our two properties and then returns the new instance
 impl RowData {
-    pub fn new(author: &str, title: &str, content: &str) -> RowData {
+    pub fn new(author: &str, title: &str, datetime: &str, content: &str) -> RowData {
         glib::Object::new(
             Self::static_type(),
             &[
                 ("author", &author),
                 ("title", &title),
+                ("datetime", &datetime),
                 ("content", &content),
             ],
         )
