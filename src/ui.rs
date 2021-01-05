@@ -1,10 +1,14 @@
-use futures::{channel::mpsc, StreamExt};
+use futures::{channel::mpsc::Receiver, StreamExt};
 use gio::prelude::*;
 use gtk::prelude::*;
 use gtk::{ApplicationWindow, Builder};
 
-use super::news_item_row_data::{NewsItem, RowData};
-type NewsItemReceiver = mpsc::Receiver<NewsItem>;
+mod news_item_row_data;
+
+pub use news_item_row_data::NewsItem;
+use news_item_row_data::RowData;
+
+type NewsItemReceiver = Receiver<NewsItem>;
 
 pub fn build(application: &gtk::Application, rx: NewsItemReceiver) {
     let main_glade = include_str!("main.glade");
