@@ -5,9 +5,17 @@
 // bindings below to bind the values with what widgets display in the UI
 use super::*;
 
+use chrono::{DateTime, Local};
 use glib::subclass;
 use glib::subclass::prelude::*;
 use glib::translate::*;
+
+pub struct NewsItem {
+    pub author: String,
+    pub title: String,
+    pub datetime: DateTime<Local>,
+    pub content: String,
+}
 
 // Implementation sub-module of the GObject
 mod imp {

@@ -11,3 +11,4 @@ gtk = { version = "0.9", features = ["v3_16"] }
 gio = { version = "0.9", features = ["v2_44"] }
 glib = "0.10"
 chrono = "*"
+futures = "0.3"

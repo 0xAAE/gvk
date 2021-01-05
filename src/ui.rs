@@ -1,11 +1,12 @@
-use chrono::prelude::*;
+use futures::{channel::mpsc, StreamExt};
 use gio::prelude::*;
 use gtk::prelude::*;
 use gtk::{ApplicationWindow, Builder};
 
-use super::news_item_row_data::RowData;
+use super::news_item_row_data::{NewsItem, RowData};
+type NewsItemReceiver = mpsc::Receiver<NewsItem>;
 
-pub fn build(application: &gtk::Application) {
+pub fn build(application: &gtk::Application, rx: NewsItemReceiver) {
     let main_glade = include_str!("main.glade");
     let builder = Builder::from_string(main_glade);
 
@@ -67,15 +68,23 @@ pub fn build(application: &gtk::Application) {
         }),
     );
 
-    let local: chrono::DateTime<Local> = Local::now();
-    for i in 0..40 {
-        news_item_model.append(&RowData::new(
-            &format!("Author {}", i),
-            &format!("Title {}", i),
-            &format!("{}", local.format("%d.%m.%Y %H:%M (%a)")),
-            &format!("Content {}:\n\tline 1\nline 2\nline 3", i),
-        ));
-    }
+    launch_news_handler(news_item_model, rx);
 
     window.show_all();
+}
+
+/// Spawn channel receive task on the main event loop.
+fn launch_news_handler(model: gio::ListStore, mut rx: NewsItemReceiver) {
+    let main_context = glib::MainContext::default();
+    let future = async move {
+        while let Some(item) = rx.next().await {
+            model.append(&RowData::new(
+                &item.author,
+                &item.title,
+                &format!("{}", item.datetime.format("%d.%m.%Y %H:%M (%a)")),
+                &item.content,
+            ));
+        }
+    };
+    main_context.spawn_local(future);
 }
