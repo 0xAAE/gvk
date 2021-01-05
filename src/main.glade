@@ -440,20 +440,4 @@ Author: 0xAAE
       </object>
     </child>
   </object>
-  <object class="GtkBox" id="news_item_view">
-    <property name="visible">True</property>
-    <property name="can-focus">False</property>
-    <property name="orientation">vertical</property>
-    <property name="spacing">5</property>
-    <property name="baseline-position">top</property>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-    <child>
-      <placeholder/>
-    </child>
-  </object>
 </interface>
