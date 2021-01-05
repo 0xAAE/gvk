@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.38.2 
+
+The MIT License (MIT)
+
+Copyright (c) Toi Systems
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Author: 0xAAE
+
+-->
+<interface>
+  <requires lib="gtk+" version="3.16"/>
+  <!-- interface-license-type mit -->
+  <!-- interface-name GVK -->
+  <!-- interface-description This is a VK desktop client -->
+  <!-- interface-copyright Toi Systems -->
+  <!-- interface-authors 0xAAE -->
+  <object class="GtkImage" id="image_bookmarks">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="pixbuf">resources/images/img_bookmarks_80.png</property>
+  </object>
+  <object class="GtkImage" id="image_chat">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="pixbuf">resources/images/img_chat_80.png</property>
+  </object>
+  <object class="GtkImage" id="image_communities">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="pixbuf">resources/images/img_community_80.png</property>
+  </object>
+  <object class="GtkImage" id="image_friends">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="pixbuf">resources/images/img_friends_80.png</property>
+  </object>
+  <object class="GtkImage" id="image_games">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="pixbuf">resources/images/img_games_80.png</property>
+  </object>
+  <object class="GtkImage" id="image_music">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="pixbuf">resources/images/img_music_80.png</property>
+  </object>
+  <object class="GtkImage" id="image_news">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="pixbuf">resources/images/img_news_80.png</property>
+  </object>
+  <object class="GtkImage" id="image_podcasts">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="pixbuf">resources/images/img_podcast_80.png</property>
+  </object>
+  <object class="GtkImage" id="image_search">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="pixbuf">resources/images/img_search_80.png</property>
+  </object>
+  <object class="GtkImage" id="image_stickers">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="pixbuf">resources/images/img_shop_80.png</property>
+  </object>
+  <object class="GtkImage" id="image_translations">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="pixbuf">resources/images/img_broadcast_80.png</property>
+  </object>
+  <object class="GtkImage" id="image_video">
+    <property name="visible">True</property>
+    <property name="can-focus">False</property>
+    <property name="pixbuf">resources/images/img_video_80.png</property>
+  </object>
+  <object class="GtkApplicationWindow" id="main_window">
+    <property name="can-focus">False</property>
+    <property name="title" translatable="yes">GVK</property>
+    <property name="default-width">1024</property>
+    <property name="default-height">768</property>
+    <child>
+      <object class="GtkPaned" id="root_pane">
+        <property name="visible">True</property>
+        <property name="can-focus">True</property>
+        <property name="position">140</property>
+        <property name="wide-handle">True</property>
+        <child>
+          <object class="GtkPaned" id="left_pane">
+            <property name="visible">True</property>
+            <property name="can-focus">True</property>
+            <property name="orientation">vertical</property>
+            <property name="position">180</property>
+            <child>
+              <object class="GtkBox" id="user_info">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkImage" id="user_image">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <property name="pixbuf">resources/images/vk128.png</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkTextView" id="user_name">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkTextView" id="user_status">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="resize">False</property>
+                <property name="shrink">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow" id="menu">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="shadow-type">in</property>
+                <child>
+                  <object class="GtkViewport" id="menu_viewport">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <child>
+                      <object class="GtkBox" id="menu_content">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="orientation">vertical</property>
+                        <property name="baseline-position">top</property>
+                        <child>
+                          <object class="GtkLinkButton" id="menu_news">
+                            <property name="label" translatable="yes">news</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">True</property>
+                            <property name="image">image_news</property>
+                            <property name="relief">none</property>
+                            <property name="use-underline">True</property>
+                            <property name="image-position">top</property>
+                            <property name="always-show-image">True</property>
+                            <property name="uri">http://glade.gnome.org</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLinkButton" id="menu_chats">
+                            <property name="label" translatable="yes">chats</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">True</property>
+                            <property name="image">image_chat</property>
+                            <property name="relief">none</property>
+                            <property name="image-position">top</property>
+                            <property name="always-show-image">True</property>
+                            <property name="uri">http://glade.gnome.org</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLinkButton" id="menu_search">
+                            <property name="label" translatable="yes">serach</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">True</property>
+                            <property name="image">image_search</property>
+                            <property name="relief">none</property>
+                            <property name="image-position">top</property>
+                            <property name="always-show-image">True</property>
+                            <property name="uri">http://glade.gnome.org</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">2</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLinkButton" id="menu_friends">
+                            <property name="label" translatable="yes">friends</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">True</property>
+                            <property name="image">image_friends</property>
+                            <property name="relief">none</property>
+                            <property name="image-position">top</property>
+                            <property name="always-show-image">True</property>
+                            <property name="uri">http://glade.gnome.org</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">3</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLinkButton" id="menu_communities">
+                            <property name="label" translatable="yes">communities</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">True</property>
+                            <property name="image">image_communities</property>
+                            <property name="relief">none</property>
+                            <property name="image-position">top</property>
+                            <property name="always-show-image">True</property>
+                            <property name="uri">http://glade.gnome.org</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">4</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLinkButton" id="menu_music">
+                            <property name="label" translatable="yes">music</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">True</property>
+                            <property name="image">image_music</property>
+                            <property name="relief">none</property>
+                            <property name="image-position">top</property>
+                            <property name="always-show-image">True</property>
+                            <property name="uri">http://glade.gnome.org</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">5</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLinkButton" id="menu_video">
+                            <property name="label" translatable="yes">video</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">True</property>
+                            <property name="image">image_video</property>
+                            <property name="relief">none</property>
+                            <property name="image-position">top</property>
+                            <property name="always-show-image">True</property>
+                            <property name="uri">http://glade.gnome.org</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">6</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLinkButton" id="menu_stickers">
+                            <property name="label" translatable="yes">stickers</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">True</property>
+                            <property name="image">image_stickers</property>
+                            <property name="relief">none</property>
+                            <property name="image-position">top</property>
+                            <property name="always-show-image">True</property>
+                            <property name="uri">http://glade.gnome.org</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">7</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLinkButton" id="menu_translations">
+                            <property name="label" translatable="yes">translations</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">True</property>
+                            <property name="image">image_translations</property>
+                            <property name="relief">none</property>
+                            <property name="image-position">top</property>
+                            <property name="always-show-image">True</property>
+                            <property name="uri">http://glade.gnome.org</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">8</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLinkButton" id="menu_podcasts">
+                            <property name="label" translatable="yes">podcasts</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">True</property>
+                            <property name="image">image_podcasts</property>
+                            <property name="relief">none</property>
+                            <property name="image-position">top</property>
+                            <property name="always-show-image">True</property>
+                            <property name="uri">http://glade.gnome.org</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">9</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLinkButton" id="menu_games">
+                            <property name="label" translatable="yes">games</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">True</property>
+                            <property name="image">image_games</property>
+                            <property name="relief">none</property>
+                            <property name="image-position">top</property>
+                            <property name="always-show-image">True</property>
+                            <property name="uri">http://glade.gnome.org</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">10</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLinkButton" id="menu_bookmarks">
+                            <property name="label" translatable="yes">bookmarks</property>
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="receives-default">True</property>
+                            <property name="image">image_bookmarks</property>
+                            <property name="relief">none</property>
+                            <property name="image-position">top</property>
+                            <property name="always-show-image">True</property>
+                            <property name="uri">http://glade.gnome.org</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">11</property>
+                          </packing>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="resize">True</property>
+                <property name="shrink">True</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="resize">False</property>
+            <property name="shrink">True</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkOverlay" id="right_pane">
+            <property name="visible">True</property>
+            <property name="can-focus">False</property>
+            <child>
+              <object class="GtkScrolledWindow" id="view_news">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="shadow-type">in</property>
+                <child>
+                  <object class="GtkViewport" id="news_content">
+                    <property name="visible">True</property>
+                    <property name="can-focus">False</property>
+                    <child>
+                      <object class="GtkListBox" id="news_list">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <property name="selection-mode">none</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="index">-1</property>
+              </packing>
+            </child>
+            <child type="overlay">
+              <object class="GtkScrolledWindow" id="view_chats">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="shadow-type">in</property>
+                <child>
+                  <placeholder/>
+                </child>
+              </object>
+            </child>
+            <child type="overlay">
+              <object class="GtkScrolledWindow" id="view_search">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="shadow-type">in</property>
+                <child>
+                  <placeholder/>
+                </child>
+              </object>
+              <packing>
+                <property name="index">1</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="resize">True</property>
+            <property name="shrink">True</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>

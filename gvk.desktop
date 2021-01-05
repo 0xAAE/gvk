@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=GVK
+Icon=vk
+StartupNotify=true
+Exec=/home/aae/dev/rust/gtk/gvk/target/debug/gvk
+Path=/home/aae/dev/rust/gtk/gvk
