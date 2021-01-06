@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate glib;
 
-use futures::channel::mpsc;
+use async_std::channel::bounded;
 use gio::prelude::*;
 use std::env::args;
 
@@ -16,7 +16,7 @@ fn main() {
 
     application.connect_activate(|app| {
         // Create a channel between communication thread and main event loop:
-        let (tx_news, rx_news) = mpsc::channel(1000);
+        let (tx_news, rx_news) = bounded(1000);
         ui::build(app, rx_news);
         launch_news_provider(tx_news);
     });

@@ -1,12 +1,12 @@
+use async_std::channel::Sender;
 use chrono::prelude::*;
-use futures::channel::mpsc::Sender;
 use std::thread;
 
 use super::ui::NewsItem;
 type NewsItemSender = Sender<NewsItem>;
 
 /// Spawn separate thread to handle communication.
-pub fn launch_news_provider(mut tx: NewsItemSender) {
+pub fn launch_news_provider(tx: NewsItemSender) {
     // Note that blocking I/O with threads can be prevented
     // by using asynchronous code, which is often a better
     // choice. For the sake of this example, we showcase the
@@ -29,7 +29,7 @@ pub fn launch_news_provider(mut tx: NewsItemSender) {
                 Err(err) => {
                     if err.is_full() {
                         println!("Data is produced too fast for GUI");
-                    } else if err.is_disconnected() {
+                    } else if err.is_closed() {
                         println!("GUI stopped, stopping thread.");
                         break;
                     }

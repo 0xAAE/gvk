@@ -1,8 +1,7 @@
-use futures::{channel::mpsc::Receiver, StreamExt};
+use async_std::channel::Receiver;
 use gio::prelude::*;
 use gtk::prelude::*;
 use gtk::{ApplicationWindow, Builder};
-
 mod news_item_row_data;
 
 pub use news_item_row_data::NewsItem;
@@ -78,10 +77,10 @@ pub fn build(application: &gtk::Application, rx: NewsItemReceiver) {
 }
 
 /// Spawn channel receive task on the main event loop.
-fn launch_news_handler(model: gio::ListStore, mut rx: NewsItemReceiver) {
+fn launch_news_handler(model: gio::ListStore, rx: NewsItemReceiver) {
     let main_context = glib::MainContext::default();
     let future = async move {
-        while let Some(item) = rx.next().await {
+        while let Ok(item) = rx.recv().await {
             model.append(&RowData::new(
                 &item.author,
                 &item.title,
