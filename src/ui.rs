@@ -7,9 +7,14 @@ mod news_item_row_data;
 pub use news_item_row_data::NewsItem;
 use news_item_row_data::RowData;
 
-type NewsItemReceiver = Receiver<NewsItem>;
+pub enum Message {
+    Auth(String),
+    News(NewsItem),
+}
 
-pub fn build(application: &gtk::Application, rx: NewsItemReceiver) {
+type MessageReceiver = Receiver<Message>;
+
+pub fn build(application: &gtk::Application, rx: MessageReceiver) {
     let main_glade = include_str!("main.glade");
     let builder = Builder::from_string(main_glade);
 
@@ -71,22 +76,25 @@ pub fn build(application: &gtk::Application, rx: NewsItemReceiver) {
         }),
     );
 
-    launch_news_handler(news_item_model, rx);
+    launch_msg_handler(news_item_model, rx);
 
     window.show_all();
 }
 
-/// Spawn channel receive task on the main event loop.
-fn launch_news_handler(model: gio::ListStore, rx: NewsItemReceiver) {
+/// Spawns message handler as a task on the main event loop
+fn launch_msg_handler(model: gio::ListStore, rx: MessageReceiver) {
     let main_context = glib::MainContext::default();
     let future = async move {
         while let Ok(item) = rx.recv().await {
-            model.append(&RowData::new(
-                &item.author,
-                &item.title,
-                &format!("{}", item.datetime.format("%d.%m.%Y %H:%M (%a)")),
-                &item.content,
-            ));
+            match item {
+                Message::Auth(_access_token) => {}
+                Message::News(item) => model.append(&RowData::new(
+                    &item.author,
+                    &item.title,
+                    &format!("{}", item.datetime.format("%d.%m.%Y %H:%M (%a)")),
+                    &item.content,
+                )),
+            };
         }
     };
     main_context.spawn_local(future);

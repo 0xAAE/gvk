@@ -16,9 +16,9 @@ fn main() {
 
     application.connect_activate(|app| {
         // Create a channel between communication thread and main event loop:
-        let (tx_news, rx_news) = bounded(1000);
-        ui::build(app, rx_news);
-        launch_news_provider(tx_news);
+        let (tx_msg, rx_msg) = bounded(1000);
+        ui::build(app, rx_msg);
+        launch_news_provider(tx_msg);
     });
 
     application.run(&args().collect::<Vec<_>>());
