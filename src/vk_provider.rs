@@ -3,10 +3,15 @@ use chrono::prelude::*;
 use serde::Deserialize;
 use std::time::Duration;
 use tokio::runtime::Builder;
-use tokio::sync::mpsc::{error::TrySendError, Sender};
-use tokio::time::delay_for;
+use tokio::sync::{
+    mpsc::{error::TrySendError, Sender},
+    oneshot,
+    oneshot::error::TryRecvError,
+};
+use tokio::time::sleep;
 
 type MessageSender = Sender<Message>;
+type StopReceiver = oneshot::Receiver<()>;
 
 const AUTH_URI: &str = "https://oauth.vk.com/authorize";
 const AUTH_PARAMS: [(&str, &str); 6] = [
@@ -19,28 +24,19 @@ const AUTH_PARAMS: [(&str, &str); 6] = [
 ];
 
 /// Spawn separate thread to handle communication.
-pub fn launch_news_provider(mut tx: MessageSender) {
-    // Note that blocking I/O with threads can be prevented
-    // by using asynchronous code, which is often a better
-    // choice. For the sake of this example, we showcase the
-    // way to use a thread when there is no other option.
-
-    // tokio-0.2.24
-    let mut runtime = Builder::new()
-        .threaded_scheduler()
+pub fn launch_vk_provider(
+    rx_stop: StopReceiver,
+    tx: MessageSender,
+    stack_size: usize,
+    thread_pool_size: usize,
+) {
+    let runtime = Builder::new_multi_thread()
+        .worker_threads(thread_pool_size)
         .enable_all()
-        .core_threads(4)
-        .thread_name("gvk-vk-provider")
-        .thread_stack_size(3 * 1024 * 1024)
+        .thread_name("vk")
+        .thread_stack_size(stack_size)
         .build()
         .unwrap();
-    // tokio-1.0
-    // let runtime = Builder::new_multi_thread()
-    //     .worker_threads(2)
-    //     .thread_name("gvk-vk-provider")
-    //     .thread_stack_size(3 * 1024 * 1024)
-    //     .build()
-    //     .unwrap();
 
     runtime.block_on(async move {
         let access_token = match get_access_token().await {
@@ -57,6 +53,8 @@ pub fn launch_news_provider(mut tx: MessageSender) {
             datetime: Local::now(),
             content: format!("Aceess token:\n{}", access_token).to_string(),
         }));
+
+        let mut rx_stop = rx_stop;
 
         let mut counter: usize = 0;
         loop {
@@ -80,8 +78,11 @@ pub fn launch_news_provider(mut tx: MessageSender) {
                 }
             }
             counter += 1;
-
-            delay_for(Duration::from_millis(100)).await;
+            sleep(Duration::from_millis(1000)).await;
+            match rx_stop.try_recv() {
+                Err(TryRecvError::Empty) => continue,
+                _ => break,
+            }
         }
     });
 }

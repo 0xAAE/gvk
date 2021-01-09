@@ -1,4 +1,3 @@
-use futures::StreamExt;
 use gio::prelude::*;
 use gtk::prelude::*;
 use gtk::{ApplicationWindow, Builder};
@@ -86,7 +85,7 @@ pub fn build(application: &gtk::Application, rx: MessageReceiver) {
 fn launch_msg_handler(model: gio::ListStore, mut rx: MessageReceiver) {
     let main_context = glib::MainContext::default();
     let future = async move {
-        while let Some(item) = rx.next().await {
+        while let Some(item) = rx.recv().await {
             match item {
                 Message::Auth(_access_token) => {}
                 Message::News(item) => model.append(&RowData::new(

@@ -7,14 +7,12 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tokio = { version = "0.2", features = ["rt-threaded", "time", "sync"] }
-#tokio = { version = "1", features = ["rt-multi-thread", "time"] }
-#reqwest = "0.11"
+tokio = { version = "1", features = ["rt-multi-thread", "time"] }
+reqwest = "0.11"
 gtk = { version = "0.9", features = ["v3_16"] }
 gio = { version = "0.9", features = ["v2_44"] }
 glib = "0.10"
 chrono = "*"
 rvk = "0.19"
 serde = { version = "1.0", features = ["derive"] }
-reqwest = "0.10"
 futures = "0.3"
