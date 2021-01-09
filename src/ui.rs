@@ -1,9 +1,11 @@
 use gio::prelude::*;
 use gtk::prelude::*;
-use gtk::{ApplicationWindow, Builder, Stack};
+use gtk::{ApplicationWindow, Builder, Button, ScrolledWindow, Stack};
 use tokio::sync::mpsc::Receiver;
-mod news_item_row_data;
+// /use webkit2gtk::UserContentManager;
+use webkit2gtk::{WebContext, WebView, WebViewExt};
 
+mod news_item_row_data;
 pub use news_item_row_data::NewsItem;
 use news_item_row_data::RowData;
 
@@ -81,6 +83,23 @@ pub fn build(application: &gtk::Application, rx: MessageReceiver) {
         .get_object("right_pane")
         .expect("Couldn't get right_pane");
     right_pane.set_visible_child_name("page_view_auth");
+
+    // create WebKit2GTK view
+    let context = WebContext::get_default().unwrap();
+    //context.set_web_extensions_directory("webkit2gtk-tmp/");
+    let webview = WebView::with_context(&context);
+    webview.load_uri("https://oauth.vk.com/authorize?client_id=7720259&display=page&redirect_uri=https://oauth.vk.com/blank.html&scope=offline&response_type=token&v=5.52");
+    let web_auth: ScrolledWindow = builder
+        .get_object("web_auth")
+        .expect("Couldn't get view_auth");
+    web_auth.add(&webview);
+    let proceed_auth: Button = builder
+        .get_object("proceed_auth")
+        .expect("Couldn't get proceed_auth");
+    proceed_auth.connect_clicked(clone!(@weak right_pane, @strong webview => move |_| {
+        println!("Url: {}", webview.get_uri().unwrap());
+        right_pane.set_visible_child_name("page_view_news");
+    }));
 
     launch_msg_handler(news_item_model, rx);
 
