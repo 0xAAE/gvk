@@ -1,6 +1,6 @@
 use gio::prelude::*;
 use gtk::prelude::*;
-use gtk::{ApplicationWindow, Builder};
+use gtk::{ApplicationWindow, Builder, Stack};
 use tokio::sync::mpsc::Receiver;
 mod news_item_row_data;
 
@@ -75,6 +75,12 @@ pub fn build(application: &gtk::Application, rx: MessageReceiver) {
             box_.upcast::<gtk::Widget>()
         }),
     );
+
+    // select visible right pane
+    let right_pane: Stack = builder
+        .get_object("right_pane")
+        .expect("Couldn't get right_pane");
+    right_pane.set_visible_child_name("page_view_auth");
 
     launch_msg_handler(news_item_model, rx);
 
