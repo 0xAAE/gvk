@@ -1,7 +1,8 @@
-use async_std::channel::Receiver;
+use futures::StreamExt;
 use gio::prelude::*;
 use gtk::prelude::*;
 use gtk::{ApplicationWindow, Builder};
+use tokio::sync::mpsc::Receiver;
 mod news_item_row_data;
 
 pub use news_item_row_data::NewsItem;
@@ -82,10 +83,10 @@ pub fn build(application: &gtk::Application, rx: MessageReceiver) {
 }
 
 /// Spawns message handler as a task on the main event loop
-fn launch_msg_handler(model: gio::ListStore, rx: MessageReceiver) {
+fn launch_msg_handler(model: gio::ListStore, mut rx: MessageReceiver) {
     let main_context = glib::MainContext::default();
     let future = async move {
-        while let Ok(item) = rx.recv().await {
+        while let Some(item) = rx.next().await {
             match item {
                 Message::Auth(_access_token) => {}
                 Message::News(item) => model.append(&RowData::new(

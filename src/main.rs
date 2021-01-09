@@ -1,9 +1,10 @@
 #[macro_use]
 extern crate glib;
 
-use async_std::channel::bounded;
 use gio::prelude::*;
 use std::env::args;
+use tokio::runtime::Builder;
+use tokio::sync::mpsc;
 
 mod ui;
 mod vk_provider;
@@ -16,7 +17,7 @@ fn main() {
 
     application.connect_activate(|app| {
         // Create a channel between communication thread and main event loop:
-        let (tx_msg, rx_msg) = bounded(1000);
+        let (tx_msg, rx_msg) = mpsc::channel(1000);
         ui::build(app, rx_msg);
         launch_news_provider(tx_msg);
     });

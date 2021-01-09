@@ -1,10 +1,10 @@
 use super::ui::{Message, NewsItem};
-use async_std::{channel::Sender, task};
 use chrono::prelude::*;
 use serde::Deserialize;
-use std::thread;
-use surf::middleware::{Middleware, Next};
-use surf::{Client, Request, Response};
+use std::time::Duration;
+use tokio::runtime::Builder;
+use tokio::sync::mpsc::{error::TrySendError, Sender};
+use tokio::time::delay_for;
 
 type MessageSender = Sender<Message>;
 
@@ -19,13 +19,30 @@ const AUTH_PARAMS: [(&str, &str); 6] = [
 ];
 
 /// Spawn separate thread to handle communication.
-pub fn launch_news_provider(tx: MessageSender) {
+pub fn launch_news_provider(mut tx: MessageSender) {
     // Note that blocking I/O with threads can be prevented
     // by using asynchronous code, which is often a better
     // choice. For the sake of this example, we showcase the
     // way to use a thread when there is no other option.
 
-    task::block_on(async move {
+    // tokio-0.2.24
+    let mut runtime = Builder::new()
+        .threaded_scheduler()
+        .enable_all()
+        .core_threads(4)
+        .thread_name("gvk-vk-provider")
+        .thread_stack_size(3 * 1024 * 1024)
+        .build()
+        .unwrap();
+    // tokio-1.0
+    // let runtime = Builder::new_multi_thread()
+    //     .worker_threads(2)
+    //     .thread_name("gvk-vk-provider")
+    //     .thread_stack_size(3 * 1024 * 1024)
+    //     .build()
+    //     .unwrap();
+
+    runtime.block_on(async move {
         let access_token = match get_access_token().await {
             Ok(tmp) => tmp,
             Err(e) => {
@@ -41,7 +58,7 @@ pub fn launch_news_provider(tx: MessageSender) {
             content: format!("Aceess token:\n{}", access_token).to_string(),
         }));
 
-        let mut counter = 0;
+        let mut counter: usize = 0;
         loop {
             // Instead of a counter, your application code will
             // block here on TCP or serial communications.
@@ -54,17 +71,17 @@ pub fn launch_news_provider(tx: MessageSender) {
 
             match tx.try_send(Message::News(data)) {
                 Ok(_) => {}
-                Err(err) => {
-                    if err.is_full() {
-                        println!("Data is produced too fast for GUI");
-                    } else if err.is_closed() {
-                        println!("GUI stopped, stopping thread.");
-                        break;
-                    }
+                Err(TrySendError::Full(_)) => {
+                    println!("Data is produced too fast for GUI");
+                }
+                Err(TrySendError::Closed(_)) => {
+                    println!("GUI stopped, stopping thread.");
+                    break;
                 }
             }
             counter += 1;
-            thread::sleep(std::time::Duration::from_secs(2));
+
+            delay_for(Duration::from_millis(100)).await;
         }
     });
 }
@@ -89,48 +106,12 @@ pub async fn get_access_token() -> Result<String, String> {
         uri.push('=');
         uri.push_str(value);
     }
-    let req = surf::get(&uri);
-    let client = surf::client()
-        .with(surf::middleware::Redirect::new(10))
-        .with(AccessTokenResponse::default());
-    match client.send(req).await {
-        Ok(response) => {
+    let req = reqwest::get(&uri).await;
+    match req {
+        Ok(_response) => {
             //Ok(format!("{:?}", response.header("Location").unwrap())),
             Ok("".into())
         }
         Err(e) => Err(format!("Auth get token error: {}", e)),
-    }
-}
-
-#[surf::utils::async_trait]
-impl Middleware for AccessTokenResponse {
-    async fn handle(
-        &self,
-        mut req: Request,
-        client: Client,
-        next: Next<'_>,
-    ) -> surf::Result<Response> {
-        // Note(Jeremiah): This is not ideal.
-        //
-        // HttpClient is currently too limiting for efficient redirects.
-        // We do not want to make unnecessary full requests, but it is
-        // presently required due to how Body streams work.
-        //
-        // Ideally we'd have methods to send a partial request stream,
-        // without sending the body, that would potnetially be able to
-        // get a server status before we attempt to send the body.
-        //
-        // As a work around we clone the request first (without the body),
-        // and try sending it until we get some status back that is not a
-        // redirect.
-
-        let r: Request = req.clone();
-        let res: Response = client.send(r).await?;
-        if let Some(location) = res.header(surf::http::headers::LOCATION) {
-            println!("{:?}", location);
-        } else {
-        }
-
-        Ok(next.run(req, client).await?)
     }
 }
