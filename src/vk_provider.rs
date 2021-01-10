@@ -21,7 +21,6 @@ type StopReceiver = oneshot::Receiver<()>;
 /// Spawn separate thread to handle communication.
 pub fn launch_vk_provider(
     rx_stop: StopReceiver,
-    storage: Arc<Storage>,
     tx: MessageSender,
     stack_size: usize,
     thread_pool_size: usize,
@@ -35,7 +34,37 @@ pub fn launch_vk_provider(
         .unwrap();
 
     runtime.block_on(async move {
+        let storage = Arc::new(Storage::new());
         let mut rx_stop = rx_stop;
+
+        // test access to vk.com account
+        // test stored auth
+        let mut auth: Option<AuthResponse> = None;
+        let access_token_valid = if let Ok(a) = storage.load_auth_async().await {
+            //todo: logging
+            auth = Some(a);
+            //todo: test auth
+            true
+        } else {
+            false
+        };
+        if !access_token_valid {
+            let (tx_response, rx_response) = oneshot::channel::<AuthResponse>();
+            if let Ok(_) = tx.send(Message::Auth(tx_response)).await {
+                if let Ok(a) = rx_response.await {
+                    if let Err(e) = storage.save_auth_async(&a).await {
+                        println!("Failed to store auth data: {}", e);
+                    }
+                    auth = Some(a);
+                }
+            }
+        }
+        if auth.is_none() {
+            println!("Authentication is not available, cannot continue");
+            return;
+        }
+        let auth = auth.unwrap();
+        println!("Authentication: {}", auth);
 
         let mut counter: usize = 0;
         loop {
