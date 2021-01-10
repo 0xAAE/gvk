@@ -1,4 +1,5 @@
-use chrono::{DateTime, Duration, Local};
+use chrono::{DateTime, Duration, Local, TimeZone};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::{fmt, str::FromStr};
 
 const AUTH_URI: &str = "https://oauth.vk.com/authorize";
@@ -12,9 +13,41 @@ const AUTH_PARAMS: [(&str, &str); 6] = [
 ];
 const IDX_REDIRECT_URI: usize = 2;
 
+fn datetime_deserializer<'de, D>(de: D) -> Result<Option<DateTime<Local>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    i64::deserialize(de).map(|secs| {
+        if secs > 0 {
+            Some(Local.timestamp(secs, 0))
+        } else {
+            None
+        }
+    })
+}
+
+fn datetime_serializer<S>(x: &Option<DateTime<Local>>, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    if let Some(dt) = x {
+        s.serialize_i64(dt.timestamp())
+    } else {
+        s.serialize_i64(0)
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
 pub struct AuthResponse {
+    #[serde(default)]
     access_token: String,
+    #[serde(
+        default = "AuthResponse::default_expires_on",
+        deserialize_with = "datetime_deserializer",
+        serialize_with = "datetime_serializer"
+    )]
     expires_on: Option<DateTime<Local>>,
+    #[serde(default)]
     user_id: String,
 }
 
@@ -30,13 +63,17 @@ impl AuthResponse {
     pub fn get_user_id(&self) -> &str {
         &self.user_id
     }
+
+    fn default_expires_on() -> Option<DateTime<Local>> {
+        None
+    }
 }
 
 impl Default for AuthResponse {
     fn default() -> Self {
         AuthResponse {
             access_token: String::default(),
-            expires_on: None,
+            expires_on: AuthResponse::default_expires_on(),
             user_id: String::default(),
         }
     }
@@ -192,7 +229,7 @@ fn auth_response_from_str() {
     assert!(atr2.expires_on.is_some());
     assert_eq!(&atr2.user_id, "1");
 
-    // and more correct
+    // incorrect variants
     assert!("abc#access_token=1234&expires_in=&user_id=1"
         .parse::<AuthResponse>()
         .unwrap()
@@ -202,14 +239,13 @@ fn auth_response_from_str() {
         .parse::<AuthResponse>()
         .unwrap()
         .expires_on
-        .is_some());
+        .is_none());
     assert!("abc#access_token=1234&expires_in=_1&user_id=1"
         .parse::<AuthResponse>()
         .unwrap()
         .expires_on
-        .is_some());
+        .is_none());
 
-    // incorrect variants
     assert!("abc#access_token=&expires_in=1&user_id=1"
         .parse::<AuthResponse>()
         .is_err());
@@ -223,4 +259,12 @@ fn auth_response_from_str() {
     assert!("abc#access_token=1234&expires_in=1&user_id_=1"
         .parse::<AuthResponse>()
         .is_err());
+}
+
+#[test]
+fn timestamp_conversion() {
+    let ts_from: i64 = 12345678;
+    let dt = Local.timestamp(ts_from, 0);
+    let ts_to = dt.timestamp();
+    assert_eq!(ts_from - ts_to, 0);
 }

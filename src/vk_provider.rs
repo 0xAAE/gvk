@@ -1,5 +1,7 @@
-use super::ui::{Message, NewsItem};
+use crate::storage::Storage;
+use crate::ui::{Message, NewsItem};
 use chrono::prelude::*;
+use std::sync::Arc;
 use std::time::Duration;
 use tokio::runtime::Builder;
 use tokio::sync::{
@@ -19,6 +21,7 @@ type StopReceiver = oneshot::Receiver<()>;
 /// Spawn separate thread to handle communication.
 pub fn launch_vk_provider(
     rx_stop: StopReceiver,
+    storage: Arc<Storage>,
     tx: MessageSender,
     stack_size: usize,
     thread_pool_size: usize,
@@ -32,22 +35,6 @@ pub fn launch_vk_provider(
         .unwrap();
 
     runtime.block_on(async move {
-        let access_token = match get_access_token().await {
-            Ok(tmp) => tmp,
-            Err(e) => {
-                //todo: logging
-                println!("{}", e);
-                return;
-            }
-        };
-
-        let _ = tx.try_send(Message::News(NewsItem {
-            author: "Authorization result".to_string(),
-            title: "Start".to_string(),
-            datetime: Local::now(),
-            content: format!("Aceess token:\n{}", access_token).to_string(),
-        }));
-
         let mut rx_stop = rx_stop;
 
         let mut counter: usize = 0;
@@ -81,18 +68,4 @@ pub fn launch_vk_provider(
             }
         }
     });
-}
-
-pub async fn get_access_token() -> Result<String, String> {
-    // https://oauth.vk.com/authorize?client_id=7720259&display=page&redirect_uri=https://oauth.vk.com/blank.html&scope=offline&response_type=token&v=5.52
-    // AUTH_URI?key=value&..
-    let uri = AccessTokenProvider::get_auth_uri();
-    let req = reqwest::get(&uri).await;
-    match req {
-        Ok(_response) => {
-            //Ok(format!("{:?}", response.header("Location").unwrap())),
-            Ok("".into())
-        }
-        Err(e) => Err(format!("Auth get token error: {}", e)),
-    }
 }
