@@ -1,9 +1,9 @@
+use crate::vk_provider::{AccessTokenProvider, AuthResponse};
 use gio::prelude::*;
 use gtk::prelude::*;
-use gtk::{ApplicationWindow, Builder, Button, ScrolledWindow, Stack};
+use gtk::{ApplicationWindow, Builder, ScrolledWindow, Stack};
 use tokio::sync::mpsc::Receiver;
-// /use webkit2gtk::UserContentManager;
-use webkit2gtk::{WebContext, WebView, WebViewExt};
+use webkit2gtk::{LoadEvent, WebContext, WebView, WebViewExt};
 
 mod news_item_row_data;
 pub use news_item_row_data::NewsItem;
@@ -92,14 +92,35 @@ pub fn build(application: &gtk::Application, rx: MessageReceiver) {
     let web_auth: ScrolledWindow = builder
         .get_object("web_auth")
         .expect("Couldn't get view_auth");
-    web_auth.add(&webview);
-    let proceed_auth: Button = builder
-        .get_object("proceed_auth")
-        .expect("Couldn't get proceed_auth");
-    proceed_auth.connect_clicked(clone!(@weak right_pane, @strong webview => move |_| {
-        println!("Url: {}", webview.get_uri().unwrap());
-        right_pane.set_visible_child_name("page_view_news");
+    webview.connect_load_changed(clone!(@weak right_pane => move |view, evt| {
+        //todo: logging
+        println!("{}: {}", evt, view.get_uri().unwrap());
+        if evt == LoadEvent::Finished {
+            if let Some(uri) = view.get_uri() {
+                if AccessTokenProvider::is_auth_succeeded_uri(uri.as_str()) {
+                    // parse auth response
+                    if let Ok(auth) = uri.as_str().parse::<AuthResponse>() {
+                        //todo: logging
+                        println!("Authenticated {}", auth);
+                        //todo: store auth response
+                        //todo: update user info view
+                        // show news
+                        right_pane.set_visible_child_name("page_view_news");
+                    }
+                }
+            }
+        }
     }));
+    web_auth.add(&webview);
+
+    // let proceed_auth: Button = builder
+    //     .get_object("proceed_auth")
+    //     .expect("Couldn't get proceed_auth");
+    // proceed_auth.connect_clicked(clone!(@weak right_pane, @strong webview => move |_| {
+    //     //todo: logging
+    //     println!("Url: {}", webview.get_uri().unwrap());
+    //     right_pane.set_visible_child_name("page_view_news");
+    // }));
 
     launch_msg_handler(news_item_model, rx);
 
