@@ -1,6 +1,7 @@
 use crate::storage::Storage;
 use crate::ui::{Message, NewsItem};
 use chrono::prelude::*;
+use rvk::APIClient;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::runtime::Builder;
@@ -14,6 +15,10 @@ use tokio::time::sleep;
 mod access_token_provider;
 pub use access_token_provider::AccessTokenProvider;
 pub use access_token_provider::AuthResponse;
+mod account;
+pub use account::Account;
+mod user;
+pub use user::{User, UserViewModel};
 
 type MessageSender = Sender<Message>;
 type StopReceiver = oneshot::Receiver<()>;
@@ -40,11 +45,15 @@ pub fn launch_vk_provider(
         // test access to vk.com account
         // test stored auth
         let mut auth: Option<AuthResponse> = None;
+        let mut account: Option<Account> = None;
         let access_token_valid = if let Ok(a) = storage.load_auth_async().await {
             //todo: logging
+            //test auth
+            // create VK client
+            let vk_api = APIClient::new(a.get_access_token());
+            account = Account::query_async(&vk_api).await;
             auth = Some(a);
-            //todo: test auth
-            true
+            account.is_some()
         } else {
             false
         };
@@ -55,6 +64,9 @@ pub fn launch_vk_provider(
                     if let Err(e) = storage.save_auth_async(&a).await {
                         println!("Failed to store auth data: {}", e);
                     }
+                    // create VK client
+                    let vk_api = APIClient::new(a.get_access_token());
+                    account = Account::query_async(&vk_api).await;
                     auth = Some(a);
                 }
             }
@@ -63,8 +75,25 @@ pub fn launch_vk_provider(
             println!("Authentication is not available, cannot continue");
             return;
         }
+        if account.is_none() {
+            println!("Authentication succeded but account is unreachable, cannot continue");
+            return;
+        }
         let auth = auth.unwrap();
+        let account = account.unwrap();
         println!("Authentication: {}", auth);
+        println!("Account: {}", account);
+        // create VK client
+        let vk_api = APIClient::new(auth.get_access_token());
+        // request own user info
+        let user = User::query_async(&vk_api, auth.get_user_id()).await;
+        if user.is_none() {
+            println!("Failed to get user infoe, cannot continue");
+            return;
+        }
+        let user = user.unwrap();
+        println!("User: {}", user);
+        let _ = tx.send(Message::OwnInfo(user.get_view_model())).await;
 
         let mut counter: usize = 0;
         loop {

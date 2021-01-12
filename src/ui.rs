@@ -1,7 +1,7 @@
-use crate::vk_provider::{AccessTokenProvider, AuthResponse};
+use crate::vk_provider::{AccessTokenProvider, AuthResponse, UserViewModel};
 use gio::prelude::*;
 use gtk::prelude::*;
-use gtk::{ApplicationWindow, Builder, ScrolledWindow, Stack};
+use gtk::{ApplicationWindow, Builder, Label, ScrolledWindow, Stack};
 use std::cell::RefCell;
 use tokio::sync::{mpsc::Receiver, oneshot};
 use webkit2gtk::{LoadEvent, WebContext, WebView, WebViewExt};
@@ -17,6 +17,8 @@ pub enum Message {
     /// Request to display authentication page and get AuthResponse, argument is a send part of a oneshot channel
     /// to send back the response with access_token etc.
     Auth(AuthResponseSender),
+    /// Updated own user info received
+    OwnInfo(UserViewModel),
     /// New incoming message to display in the user's wall
     News(NewsItem),
 }
@@ -107,6 +109,16 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                     web_auth.add(&webview);
                     web_auth.show_all();
                     show_right_pane(&ui_builder, "page_view_auth");
+                }
+                Message::OwnInfo(vm) => {
+                    let user_name: Label = ui_builder
+                        .get_object("user_name")
+                        .expect("Couldn't get user_name widget");
+                    user_name.set_label(&vm.name);
+                    let user_status: Label = ui_builder
+                        .get_object("user_status")
+                        .expect("Couldn't get user_status widget");
+                    user_status.set_label("online");
                 }
                 Message::News(item) => model.append(&RowData::new(
                     &item.author,
