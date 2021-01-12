@@ -1,3 +1,4 @@
+use crate::vk_provider::download;
 use rvk::{methods::users, objects::user::User as VKUser, APIClient, Params};
 use std::fmt;
 
@@ -56,5 +57,11 @@ impl fmt::Display for User {
             self.data.last_name,
             self.data.status.as_ref().unwrap_or(&String::new())
         )
+    }
+}
+
+impl fmt::Display for UserViewModel {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{} {} image: {}", self.name, self.status, self.image)
     }
 }

@@ -109,7 +109,7 @@ Author: 0xAAE
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="orientation">vertical</property>
-            <property name="position">120</property>
+            <property name="position">125</property>
             <child>
               <object class="GtkBox" id="user_info">
                 <property name="visible">True</property>

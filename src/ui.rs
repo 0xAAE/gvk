@@ -1,7 +1,7 @@
 use crate::vk_provider::{AccessTokenProvider, AuthResponse, UserViewModel};
 use gio::prelude::*;
 use gtk::prelude::*;
-use gtk::{ApplicationWindow, Builder, Label, ScrolledWindow, Stack};
+use gtk::{ApplicationWindow, Builder, Image, Label, ScrolledWindow, Stack};
 use std::cell::RefCell;
 use tokio::sync::{mpsc::Receiver, oneshot};
 use webkit2gtk::{LoadEvent, WebContext, WebView, WebViewExt};
@@ -111,14 +111,7 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                     show_right_pane(&ui_builder, "page_view_auth");
                 }
                 Message::OwnInfo(vm) => {
-                    let user_name: Label = ui_builder
-                        .get_object("user_name")
-                        .expect("Couldn't get user_name widget");
-                    user_name.set_label(&vm.name);
-                    let user_status: Label = ui_builder
-                        .get_object("user_status")
-                        .expect("Couldn't get user_status widget");
-                    user_status.set_label("online");
+                    show_user_info(&ui_builder, &vm);
                 }
                 Message::News(item) => model.append(&RowData::new(
                     &item.author,
@@ -176,4 +169,21 @@ fn show_right_pane(ui_builder: &Builder, name: &str) {
         .get_object("right_pane")
         .expect("Couldn't get right_pane");
     right_pane.set_visible_child_name(name);
+}
+
+fn show_user_info(ui_builder: &Builder, view_model: &UserViewModel) {
+    if !view_model.image.is_empty() {
+        let user_image: Image = ui_builder
+            .get_object("user_image")
+            .expect("Couldn't get user_image widget");
+        user_image.set_from_file(&view_model.image);
+    }
+    let user_name: Label = ui_builder
+        .get_object("user_name")
+        .expect("Couldn't get user_name widget");
+    user_name.set_label(&view_model.name);
+    let user_status: Label = ui_builder
+        .get_object("user_status")
+        .expect("Couldn't get user_status widget");
+    user_status.set_label("online");
 }

@@ -19,6 +19,7 @@ mod account;
 pub use account::Account;
 mod user;
 pub use user::{User, UserViewModel};
+mod download;
 
 type MessageSender = Sender<Message>;
 type StopReceiver = oneshot::Receiver<()>;
@@ -88,12 +89,16 @@ pub fn launch_vk_provider(
         // request own user info
         let user = User::query_async(&vk_api, auth.get_user_id()).await;
         if user.is_none() {
-            println!("Failed to get user infoe, cannot continue");
+            println!("Failed to get user info, cannot continue");
             return;
         }
         let user = user.unwrap();
         println!("User: {}", user);
-        let _ = tx.send(Message::OwnInfo(user.get_view_model())).await;
+        let mut view_model = user.get_view_model();
+        // download image file:
+        finalize_view_model(&mut view_model, &storage).await;
+        println!("User view: {}", &view_model);
+        let _ = tx.send(Message::OwnInfo(view_model)).await;
 
         let mut counter: usize = 0;
         loop {
@@ -126,4 +131,14 @@ pub fn launch_vk_provider(
             }
         }
     });
+}
+
+async fn finalize_view_model(view_model: &mut UserViewModel, storage: &Storage) {
+    match download::file(&view_model.image, storage.get_cache_dir()).await {
+        Ok(pathname) => view_model.image = pathname,
+        Err(e) => {
+            view_model.image.clear();
+            println!("User image error: {}", e)
+        }
+    }
 }
