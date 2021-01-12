@@ -82,7 +82,7 @@ impl Storage {
         let auth_file = self.get_auth_file_name();
         let mut file = TokioFile::open(&auth_file)
             .await
-            .map_err(|e| StorageError::OpenFile(auth_file))?;
+            .map_err(|_| StorageError::OpenFile(auth_file))?;
 
         let mut content = vec![];
         file.read_to_end(&mut content)

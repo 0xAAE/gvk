@@ -109,7 +109,7 @@ Author: 0xAAE
             <property name="visible">True</property>
             <property name="can-focus">True</property>
             <property name="orientation">vertical</property>
-            <property name="position">180</property>
+            <property name="position">125</property>
             <child>
               <object class="GtkBox" id="user_info">
                 <property name="visible">True</property>
@@ -119,18 +119,21 @@ Author: 0xAAE
                   <object class="GtkImage" id="user_image">
                     <property name="visible">True</property>
                     <property name="can-focus">False</property>
-                    <property name="pixbuf">resources/images/vk128.png</property>
+                    <property name="pixbuf">resources/images/vk44.png</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
                     <property name="fill">True</property>
+                    <property name="padding">10</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkTextView" id="user_name">
+                  <object class="GtkLabel" id="user_name">
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
+                    <property name="label" translatable="yes">User is not</property>
+                    <property name="wrap">True</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -139,9 +142,10 @@ Author: 0xAAE
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkTextView" id="user_status">
+                  <object class="GtkLabel" id="user_status">
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
+                    <property name="label" translatable="yes">authenticated</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
