@@ -20,6 +20,7 @@ pub use account::Account;
 mod user;
 pub use user::{User, UserViewModel};
 mod download;
+mod newsfeed;
 
 type MessageSender = Sender<Message>;
 type StopReceiver = oneshot::Receiver<()>;
