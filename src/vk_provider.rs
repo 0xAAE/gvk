@@ -25,7 +25,7 @@ type MessageSender = Sender<Message>;
 type StopReceiver = oneshot::Receiver<()>;
 
 /// Spawn separate thread to handle communication.
-pub fn launch_vk_provider(
+pub fn run_with_own_runtime(
     rx_stop: StopReceiver,
     tx: MessageSender,
     stack_size: usize,

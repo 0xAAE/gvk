@@ -1,4 +1,3 @@
-use crate::vk_provider::download;
 use rvk::{methods::users, objects::user::User as VKUser, APIClient, Params};
 use std::fmt;
 

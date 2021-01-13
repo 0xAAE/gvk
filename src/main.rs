@@ -7,10 +7,9 @@ use std::env::args;
 use std::thread;
 use tokio::sync::{mpsc, oneshot};
 
+mod storage;
 mod ui;
 mod vk_provider;
-use vk_provider::launch_vk_provider;
-mod storage;
 
 fn main() {
     // Create a channel between communication thread and main event loop:
@@ -32,7 +31,12 @@ fn main() {
         .stack_size(tokio_stack_size)
         .name("vkhost".into())
         .spawn(move || {
-            launch_vk_provider(rx_stop, tx_msg, tokio_stack_size, tokio_thread_pool_size);
+            vk_provider::run_with_own_runtime(
+                rx_stop,
+                tx_msg,
+                tokio_stack_size,
+                tokio_thread_pool_size,
+            );
         })
         .unwrap();
     application.run(&args().collect::<Vec<_>>());
