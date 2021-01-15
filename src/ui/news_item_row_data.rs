@@ -4,18 +4,10 @@
 // Properties are exposed via normal GObject properties. This allows us to use property
 // bindings below to bind the values with what widgets display in the UI
 use super::*;
-
-use chrono::{DateTime, Local};
+use crate::view_models::NewsItemViewModel;
 use glib::subclass;
 use glib::subclass::prelude::*;
 use glib::translate::*;
-
-pub struct NewsItem {
-    pub author: String,
-    pub title: String,
-    pub datetime: DateTime<Local>,
-    pub content: String,
-}
 
 // Implementation sub-module of the GObject
 mod imp {
@@ -172,14 +164,14 @@ glib_wrapper! {
 // Constructor for new instances. This simply calls glib::Object::new() with
 // initial values for our two properties and then returns the new instance
 impl RowData {
-    pub fn new(author: &str, title: &str, datetime: &str, content: &str) -> RowData {
+    pub fn new(model: &NewsItemViewModel) -> RowData {
         glib::Object::new(
             Self::static_type(),
             &[
-                ("author", &author),
-                ("title", &title),
-                ("datetime", &datetime),
-                ("content", &content),
+                ("author", &model.author),
+                ("title", &model.title),
+                ("datetime", &model.datetime),
+                ("content", &model.content),
             ],
         )
         .expect("Failed to create row data")

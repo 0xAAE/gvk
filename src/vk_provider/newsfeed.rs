@@ -1,23 +1,69 @@
 use chrono::Utc;
 use rvk::{
     methods::newsfeed,
-    objects::{attachment, geo, group, note, photo, post, user},
+    objects::{attachment, geo, group, note, photo, post, post_source, user},
     APIClient, Params,
 };
 use serde::Deserialize;
+use std::env;
 
 // a maximal time interval to limit news updates
 const MAX_UPDATE_DELTA_SEC: u64 = 3_600; // 1 hour
-
-pub enum NewsFeedError {
-    Request,
-}
 
 /// <https://vk.com/dev/newsfeed.get>
 pub struct NewsFeed {
     start_sec: u64,
     // end_sec: u64,
     start_from: String,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct PhotoSet {
+    // информация о количестве объектов
+    pub count: i64,
+    // и до 5 последних объектов, связанных с данной новостью
+    pub items: Option<Vec<photo::Photo>>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct PhotoTags {
+    // информация о количестве объектов
+    pub count: i64,
+    // и до 5 последних объектов, связанных с данной новостью
+    //pub items: Option<Vec<?>>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct NoteSet {
+    // информация о количестве объектов
+    pub count: i64,
+    // и до 5 последних объектов, связанных с данной новостью
+    pub items: Option<Vec<note::Note>>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct FriendSet {
+    // информация о количестве объектов
+    pub count: i64,
+    // и до 5 последних объектов, связанных с данной новостью
+    pub items: Option<Vec<i64>>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct HistoryItem {
+    pub date: u64,
+    pub from_id: i64,
+    pub id: i64,
+    pub owner_id: i64,
+    // находится в записях со стен и содержит массив объектов, которые прикреплены к текущей новости (фотография, ссылка и т.п.).
+    // Более подробная информация представлена на странице <https://vk.com/dev/objects/attachments_w>
+    pub attachments: Option<Vec<attachment::WallAttachment>>,
+    // тип
+    pub post_type: Option<String>,
+    // находится в записях со стен и содержит текст записи
+    pub text: Option<String>,
+    // source
+    pub post_source: Option<post_source::PostSource>,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -30,49 +76,49 @@ pub struct Item {
     // время публикации новости в формате unixtime
     pub date: u64,
     // находится в записях со стен и содержит идентификатор записи на стене владельца
-    pub post_id: Option<String>,
+    pub post_id: Option<u64>,
     // находится в записях со стен, содержит тип новости (post или copy)
     pub post_type: Option<String>,
     // передается в случае, если этот пост сделан при удалении
     pub final_post: Option<String>,
     // находится в записях со стен, если сообщение является копией сообщения с чужой стены,
     // и содержит идентификатор владельца стены, у которого было скопировано сообщение
-    pub copy_owner_id: Option<String>,
+    pub copy_owner_id: Option<i64>,
     // находится в записях со стен, если сообщение является копией сообщения с чужой стены,
     // и содержит идентификатор скопированного сообщения на стене его владельца
     pub copy_post_id: Option<String>,
     // массив, содержащий историю репостов для записи. Возвращается только в том случае,
     // если запись является репостом. Каждый из объектов массива, в свою очередь,
     // является объектом-записью стандартного формата (wtf?)
-    pub copy_history: Option<Vec<post::Post>>,
+    pub copy_history: Option<Vec<HistoryItem>>,
     // находится в записях со стен, если сообщение является копией сообщения с чужой стены,
     // и содержит дату скопированного сообщения
     pub copy_post_date: Option<String>,
     // находится в записях со стен и содержит текст записи
     pub text: Option<String>,
     // содержит 1, если текущий пользователь может редактировать запись
-    pub can_edit: u64,
+    pub can_edit: Option<u64>,
     // возвращается, если пользователь может удалить новость, всегда содержит 1
-    pub can_delete: u64,
+    pub can_delete: Option<u64>,
     // находится в записях со стен и содержит информацию о комментариях к записи,
     pub comments: Option<post::Comments>,
-    //  — находится в записях со стен и содержит информацию о числе людей, которым понравилась данная запись
+    //  находится в записях со стен и содержит информацию о числе людей, которым понравилась данная запись
     pub likes: Option<post::Likes>,
     // находится в записях со стен и содержит информацию о числе людей, которые скопировали данную запись на свою страницу
     pub reposts: Option<post::Reposts>,
-    // аходится в записях со стен и содержит массив объектов, которые прикреплены к текущей новости (фотография, ссылка и т.п.).
+    // находится в записях со стен и содержит массив объектов, которые прикреплены к текущей новости (фотография, ссылка и т.п.).
     // Более подробная информация представлена на странице <https://vk.com/dev/objects/attachments_w>
     pub attachments: Option<Vec<attachment::WallAttachment>>,
     // geo — находится в записях со стен, в которых имеется информация о местоположении
     pub geo: Option<geo::Geo>,
     // (кроме записей со стен) содержат информацию о количестве объектов и до 5 последних объектов, связанных с данной новостью
-    pub photos: Option<Vec<photo::Photo>>,
+    pub photos: Option<PhotoSet>,
     // (кроме записей со стен) содержат информацию о количестве объектов и до 5 последних объектов, связанных с данной новостью
-    pub photo_tags: Option<Vec<photo::Photo>>,
+    pub photo_tags: Option<PhotoTags>,
     // (кроме записей со стен) содержат информацию о количестве объектов и до 5 последних объектов, связанных с данной новостью
-    pub notes: Option<Vec<note::Note>>,
+    pub notes: Option<NoteSet>,
     // (кроме записей со стен) содержат информацию о количестве объектов и до 5 последних объектов, связанных с данной новостью
-    pub friends: Option<Vec<i64>>,
+    pub friends: Option<FriendSet>,
 }
 
 #[derive(Deserialize, Clone, Debug)]
@@ -81,13 +127,13 @@ pub struct NewsUpdate {
     pub items: Option<Vec<Item>>,
     // информация о пользователях (<https://vk.com/dev/objects/user>), которые находятся в списке новостей
     pub profiles: Option<Vec<user::User>>,
-    // содержит массив объектов сообществ (<https://vk.com/dev/objects/groups>), которые присутствуют в новостя
+    // содержит массив объектов сообществ (<https://vk.com/dev/objects/groups>), которые присутствуют в новостях
     pub groups: Option<Vec<group::Group>>,
     // offset, который необходимо передать, для того, чтобы получить следующую часть новостей (в более старых версиях API)
-    pub new_offset: u64,
+    //pub new_offset: u64,
     // start_from, который необходимо передать, для того, чтобы получить следующую часть новостей.
     // Позволяет избавиться от дубликатов, которые могут возникнуть при появлении новых новостей между вызовами этого метода.
-    pub next_from: String,
+    pub next_from: Option<String>,
 }
 
 impl NewsFeed {
@@ -102,36 +148,73 @@ impl NewsFeed {
     }
 
     // returns pack of the news preceeding the current the most old one, i.e. start_sec - MAX_UPDATE_DELTA_SEC
-    pub async fn prev_update(&mut self, api: &APIClient) -> Option<NewsUpdate> {
+    pub async fn prev_update(&mut self, api: &mut APIClient) -> Option<NewsUpdate> {
         let upd_end_time = self.start_sec;
         let upd_start_time = upd_end_time - MAX_UPDATE_DELTA_SEC;
         let mut params = Params::new();
         params.insert("start_time".into(), format!("{}", upd_start_time).into());
         params.insert("end_time".into(), format!("{}", upd_end_time).into());
+        self.do_update(api, params).await
+    }
+
+    // returrns next protion of the news, i.e. subsequent to the most recent ones
+    pub async fn next_update(&mut self, api: &mut APIClient) -> Option<NewsUpdate> {
+        let mut params = Params::new();
+        params.insert("start_from".into(), self.start_from.clone());
+        self.do_update(api, params).await
+    }
+
+    async fn do_update(&mut self, api: &mut APIClient, params: Params) -> Option<NewsUpdate> {
+        let trace = env::var("TRACE_NEWS").unwrap_or_default();
+        api.trace_response(trace == "1");
         match newsfeed::get::<NewsUpdate>(api, params).await {
             Ok(upd) => {
-                self.start_sec = upd_start_time;
+                api.trace_response(false);
+                self.start_from = if let Some(val) = upd.next_from.as_ref() {
+                    val.clone()
+                } else {
+                    String::new()
+                };
                 Some(upd)
             }
             Err(e) => {
-                println!("Failed requesting news update: {}", e);
+                api.trace_response(false);
+                match e {
+                    rvk::error::Error::API(e) => {
+                        println!(
+                            "Failed requesting news update: {}, extra {:?}",
+                            e.msg(),
+                            e.extra()
+                        );
+                    }
+                    _ => println!("Failed requesting news update: {}", e),
+                }
                 None
             }
         }
     }
+}
 
-    // returrns next protion of the news, i.e. subsequent to the most recent ones
-    pub async fn next_update(&mut self, api: &APIClient) -> Option<NewsUpdate> {
-        let mut params = Params::new();
-        params.insert("start_from".into(), self.start_from.clone());
-        match newsfeed::get::<NewsUpdate>(api, params).await {
-            Ok(upd) => {
-                self.start_from = upd.next_from.clone();
-                Some(upd)
-            }
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::storage::Storage;
+    use std::fs::read_to_string;
+    use std::path::Path;
+
+    #[test]
+    fn deserialize_news_update() {
+        let storage = Storage::new();
+        let json_file = storage.get_cache_dir().to_string() + "/news.json";
+        let path = Path::new(&json_file);
+        let s = read_to_string(&path).unwrap();
+        let result = serde_json::from_str::<NewsUpdate>(&s);
+        match result {
+            Ok(_upd) => assert!(true),
             Err(e) => {
-                println!("Failed requesting news update: {}", e);
-                None
+                let msg = format!("{}", e);
+                println!("{}", msg);
+                assert!(false);
             }
         }
     }

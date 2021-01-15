@@ -7,9 +7,12 @@ const AUTH_PARAMS: [(&str, &str); 6] = [
     ("client_id", "7720259"),
     ("display", "page"),
     ("redirect_uri", "https://oauth.vk.com/blank.html"),
-    ("scope", "offline"), // "friends" is possible too
+    (
+        "scope",
+        "offline,friends,groups,photos,audio,video,stories,status,notes,wall",
+    ), // "friends" is possible too
     ("response_type", "token"),
-    ("v", "5.52"),
+    ("v", rvk::API_VERSION),
 ];
 const IDX_REDIRECT_URI: usize = 2;
 
@@ -56,6 +59,8 @@ impl AuthResponse {
         &self.access_token
     }
 
+    // not decide yet how to use it
+    #[allow(dead_code)]
     pub fn get_expires_on(&self) -> Option<DateTime<Local>> {
         self.expires_on
     }

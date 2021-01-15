@@ -1,6 +1,5 @@
 use crate::storage::Storage;
-use crate::ui::{Message, NewsItem};
-use chrono::prelude::*;
+use crate::ui::Message;
 use rvk::APIClient;
 use std::sync::Arc;
 use std::time::Duration;
@@ -21,6 +20,7 @@ mod user;
 pub use user::{User, UserViewModel};
 mod download;
 mod newsfeed;
+pub use newsfeed::{Item as NewsItem, NewsFeed, NewsUpdate};
 
 type MessageSender = Sender<Message>;
 type StopReceiver = oneshot::Receiver<()>;
@@ -86,7 +86,7 @@ pub fn run_with_own_runtime(
         println!("Authentication: {}", auth);
         println!("Account: {}", account);
         // create VK client
-        let vk_api = APIClient::new(auth.get_access_token());
+        let mut vk_api = APIClient::new(auth.get_access_token());
         // request own user info
         let user = User::query_async(&vk_api, auth.get_user_id()).await;
         if user.is_none() {
@@ -101,31 +101,26 @@ pub fn run_with_own_runtime(
         println!("User view: {}", &view_model);
         let _ = tx.send(Message::OwnInfo(view_model)).await;
 
-        let mut counter: usize = 0;
+        let mut news = NewsFeed::new();
         loop {
-            // Instead of a counter, your application code will
-            // block here on TCP or serial communications.
-            let data = NewsItem {
-                author: format!("Author {}", counter).to_string(),
-                title: format!("Title {}", counter).to_string(),
-                datetime: Local::now(),
-                content: format!("Content {}:\n\tline 1\nline 2\nline 3", counter).to_string(),
-            };
-
-            match tx.try_send(Message::News(data)) {
-                Ok(_) => {}
-                Err(TrySendError::Full(_)) => {
-                    //todo: logging
-                    println!("Data is produced too fast for GUI");
-                }
-                Err(TrySendError::Closed(_)) => {
-                    //todo: logging
-                    println!("GUI stopped, stopping thread.");
-                    break;
+            // query news
+            if let Some(update) = news.next_update(&mut vk_api).await {
+                match tx.try_send(Message::News(update)) {
+                    Ok(_) => {}
+                    Err(TrySendError::Full(_)) => {
+                        //todo: logging
+                        println!("Data is produced too fast for GUI");
+                    }
+                    Err(TrySendError::Closed(_)) => {
+                        //todo: logging
+                        println!("GUI stopped, stopping thread.");
+                        break;
+                    }
                 }
             }
-            counter += 1;
-            sleep(Duration::from_millis(1000)).await;
+
+            // todo: use tokio select!
+            sleep(Duration::from_millis(60000)).await;
             match rx_stop.try_recv() {
                 Err(TryRecvError::Empty) => continue,
                 _ => break,

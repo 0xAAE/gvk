@@ -1,4 +1,4 @@
-use crate::vk_provider::{AccessTokenProvider, AuthResponse, UserViewModel};
+use crate::vk_provider::{AccessTokenProvider, AuthResponse, NewsUpdate, UserViewModel};
 use gio::prelude::*;
 use gtk::prelude::*;
 use gtk::{ApplicationWindow, Builder, Image, Label, ScrolledWindow, Stack};
@@ -7,9 +7,7 @@ use tokio::sync::{mpsc::Receiver, oneshot};
 use webkit2gtk::{LoadEvent, WebContext, WebView, WebViewExt};
 
 mod news_item_row_data;
-pub use news_item_row_data::NewsItem;
 use news_item_row_data::RowData;
-
 type AuthResponseSender = oneshot::Sender<AuthResponse>;
 
 /// Communicating from VK provider to UI
@@ -20,7 +18,7 @@ pub enum Message {
     /// Updated own user info received
     OwnInfo(UserViewModel),
     /// New incoming message to display in the user's wall
-    News(NewsItem),
+    News(NewsUpdate),
 }
 
 type MessageReceiver = Receiver<Message>;
@@ -113,12 +111,11 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                 Message::OwnInfo(vm) => {
                     show_user_info(&ui_builder, &vm);
                 }
-                Message::News(item) => model.append(&RowData::new(
-                    &item.author,
-                    &item.title,
-                    &format!("{}", item.datetime.format("%d.%m.%Y %H:%M (%a)")),
-                    &item.content,
-                )),
+                Message::News(update) => {
+                    for view_model in update {
+                        model.append(&RowData::new(&view_model));
+                    }
+                }
             };
         }
     };

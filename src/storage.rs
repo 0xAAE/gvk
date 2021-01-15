@@ -97,6 +97,8 @@ impl Storage {
         Ok(auth)
     }
 
+    // alternative sync version
+    #[allow(dead_code)]
     pub fn save_auth(&self, auth: &AuthResponse) -> Result<(), StorageError> {
         let v = serde_json::to_string(auth).map_err(|_| StorageError::JsonSerialize)?;
         let auth_file = self.get_auth_file_name();
@@ -105,6 +107,8 @@ impl Storage {
         Ok(())
     }
 
+    // alternative sync version
+    #[allow(dead_code)]
     pub fn load_auth(&self) -> Result<AuthResponse, StorageError> {
         let auth_file = self.get_auth_file_name();
         let path = Path::new(&auth_file);
