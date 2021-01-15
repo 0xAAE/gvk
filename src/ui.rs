@@ -6,8 +6,7 @@ use std::cell::RefCell;
 use tokio::sync::{mpsc::Receiver, oneshot};
 use webkit2gtk::{LoadEvent, WebContext, WebView, WebViewExt};
 
-mod news_item_row_data;
-use news_item_row_data::RowData;
+use crate::view_models::RowData;
 type AuthResponseSender = oneshot::Sender<AuthResponse>;
 
 /// Communicating from VK provider to UI

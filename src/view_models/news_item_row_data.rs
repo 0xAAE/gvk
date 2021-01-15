@@ -3,8 +3,8 @@
 // (!) Store any property in a RefCell to allow for interior mutability
 // Properties are exposed via normal GObject properties. This allows us to use property
 // bindings below to bind the values with what widgets display in the UI
-use super::*;
 use crate::models::NewsItemModel;
+use gio::prelude::*;
 use glib::subclass;
 use glib::subclass::prelude::*;
 use glib::translate::*;

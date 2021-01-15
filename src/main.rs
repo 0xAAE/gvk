@@ -10,6 +10,7 @@ use tokio::sync::{mpsc, oneshot};
 mod models;
 mod storage;
 mod ui;
+mod view_models;
 mod vk_provider;
 
 fn main() {
