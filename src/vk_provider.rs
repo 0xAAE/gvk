@@ -16,7 +16,7 @@ mod access_token_provider;
 pub use access_token_provider::AccessTokenProvider;
 pub use access_token_provider::AuthResponse;
 mod account;
-pub use account::Account;
+pub use account::{Account, AccountProvider};
 mod user;
 pub use user::{User, UserViewModel};
 mod download;
@@ -54,7 +54,7 @@ pub fn run_with_own_runtime(
             //test auth
             // create VK client
             let vk_api = APIClient::new(a.get_access_token());
-            account = Account::query_async(&vk_api).await;
+            account = AccountProvider::query_async(&vk_api).await;
             auth = Some(a);
             account.is_some()
         } else {
@@ -69,7 +69,7 @@ pub fn run_with_own_runtime(
                     }
                     // create VK client
                     let vk_api = APIClient::new(a.get_access_token());
-                    account = Account::query_async(&vk_api).await;
+                    account = AccountProvider::query_async(&vk_api).await;
                     auth = Some(a);
                 }
             }
