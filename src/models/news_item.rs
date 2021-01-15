@@ -5,7 +5,7 @@ use std::iter::{IntoIterator, Iterator};
 
 pub struct NewsItemModel {
     pub author: String,
-    pub title: String,
+    pub itemtype: String,
     pub datetime: String,
     pub content: String,
 }
@@ -58,7 +58,7 @@ impl Iterator for NewsUpdateIterator {
             } else {
                 // source is group
                 if let Some(grp) = self.groups.iter().find(|g| g.id == -item.source_id) {
-                    Some(grp.screen_name.clone())
+                    Some(grp.name.clone())
                 } else {
                     None
                 }
@@ -68,10 +68,19 @@ impl Iterator for NewsUpdateIterator {
                 DateTime::<Utc>::from_utc(naive, Utc).with_timezone(&Local);
             Some(NewsItemModel {
                 author: source.unwrap_or_default(),
-                title: item.type_.clone(),
+                itemtype: item.type_.clone(),
                 datetime: format!("{}", datetime.format("%d.%m.%Y %H:%M (%a)")),
-                content: item.text.as_ref().unwrap_or(&String::new()).clone(),
+                content: if let Some(text) = item.text.as_ref() {
+                    process_text(text)
+                } else {
+                    String::new()
+                },
             })
         }
     }
+}
+
+fn process_text(text: &String) -> String {
+    // replace & symbol
+    text.replace('&', "&amp;")
 }

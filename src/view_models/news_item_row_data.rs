@@ -1,4 +1,4 @@
-// Our GObject subclass for carrying an author, title and content of a news item for the list_news ListBox model
+// Our GObject subclass for carrying an author, type and content of a news item for the list_news ListBox model
 //
 // (!) Store any property in a RefCell to allow for interior mutability
 // Properties are exposed via normal GObject properties. This allows us to use property
@@ -18,7 +18,7 @@ mod imp {
     // directly from the outside.
     pub struct RowData {
         author: RefCell<Option<String>>,
-        title: RefCell<Option<String>>,
+        itemtype: RefCell<Option<String>>,
         datetime: RefCell<Option<String>>,
         content: RefCell<Option<String>>,
     }
@@ -35,11 +35,11 @@ mod imp {
                 glib::ParamFlags::READWRITE,
             )
         }),
-        subclass::Property("title", |title| {
+        subclass::Property("itemtype", |itemtype| {
             glib::ParamSpec::string(
-                title,
-                "Title",
-                "Title",
+                itemtype,
+                "ItemType",
+                "ItemType",
                 // Default value
                 None,
                 glib::ParamFlags::READWRITE,
@@ -89,7 +89,7 @@ mod imp {
         fn new() -> Self {
             Self {
                 author: RefCell::new(None),
-                title: RefCell::new(None),
+                itemtype: RefCell::new(None),
                 datetime: RefCell::new(None),
                 content: RefCell::new(None),
             }
@@ -115,11 +115,11 @@ mod imp {
                         .expect("author type conformity checked by `Object::set_property`");
                     self.author.replace(author);
                 }
-                subclass::Property("title", ..) => {
-                    let title = value
+                subclass::Property("itemtype", ..) => {
+                    let itemtype = value
                         .get()
-                        .expect("title type conformity checked by `Object::set_property`");
-                    self.title.replace(title);
+                        .expect("itemtype type conformity checked by `Object::set_property`");
+                    self.itemtype.replace(itemtype);
                 }
                 subclass::Property("datetime", ..) => {
                     let datetime = value
@@ -142,7 +142,7 @@ mod imp {
 
             match *prop {
                 subclass::Property("author", ..) => Ok(self.author.borrow().to_value()),
-                subclass::Property("title", ..) => Ok(self.title.borrow().to_value()),
+                subclass::Property("itemtype", ..) => Ok(self.itemtype.borrow().to_value()),
                 subclass::Property("datetime", ..) => Ok(self.datetime.borrow().to_value()),
                 subclass::Property("content", ..) => Ok(self.content.borrow().to_value()),
                 _ => unimplemented!(),
@@ -169,7 +169,7 @@ impl RowData {
             Self::static_type(),
             &[
                 ("author", &model.author),
-                ("title", &model.title),
+                ("itemtype", &model.itemtype),
                 ("datetime", &model.datetime),
                 ("content", &model.content),
             ],

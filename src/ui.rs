@@ -54,10 +54,10 @@ pub fn build(application: &gtk::Application, rx: MessageReceiver) {
             let header: gtk::HeaderBar = builder
                 .get_object("news_item_header")
                 .expect("Couldn't get news_item_header");
-            item.bind_property("title", &header, "title")
+            item.bind_property("itemtype", &header, "subtitle")
                 .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
                 .build();
-            item.bind_property("author", &header, "subtitle")
+            item.bind_property("author", &header, "title")
                 .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
                 .build();
 
