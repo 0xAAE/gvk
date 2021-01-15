@@ -41,10 +41,15 @@ impl NewsProvider {
     }
 
     async fn do_update(&mut self, api: &mut APIClient, params: Params) -> Option<NewsFeed> {
-        let trace = env::var("TRACE_NEWS").unwrap_or_default();
-        api.trace_response(trace == "1");
+        let trace: u32 = if let Ok(s) = env::var("TRACE_NEWS") {
+            s.as_str().parse::<u32>().unwrap_or(0)
+        } else {
+            0
+        };
+        api.trace_response(trace != 0);
         match newsfeed::get::<NewsFeed>(api, params).await {
             Ok(upd) => {
+                env::set_var("TRACE_NEWS", "0");
                 api.trace_response(false);
                 self.start_from = if let Some(val) = upd.next_from.as_ref() {
                     val.clone()
@@ -54,7 +59,7 @@ impl NewsProvider {
                 Some(upd)
             }
             Err(e) => {
-                api.trace_response(false);
+                env::set_var("TRACE_NEWS", "1");
                 match e {
                     rvk::error::Error::API(e) => {
                         println!(
