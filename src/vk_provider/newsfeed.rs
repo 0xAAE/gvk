@@ -1,7 +1,10 @@
 use chrono::Utc;
 use rvk::{
     methods::newsfeed,
-    objects::{attachment, geo, group, note, photo, post, post_source, user},
+    objects::{
+        attachment, audio, document, geo, group, link, market_album, market_item, note, page,
+        photo, podcast, poll, post, post_source, sticker, user, video,
+    },
     APIClient, Params,
 };
 use serde::Deserialize;
@@ -66,6 +69,84 @@ pub struct HistoryItem {
     pub post_source: Option<post_source::PostSource>,
 }
 
+/// undocumented, differs from the photo::Album <https://vk.com/dev/objects/attachments_w> by id: String
+#[derive(Deserialize, Clone, Debug)]
+pub struct Album {
+    pub id: String,
+    pub thumb: photo::Photo,
+    pub owner_id: i64,
+    pub title: String,
+    pub description: String,
+    pub created: u64,
+    pub updated: u64,
+    pub size: u64,
+}
+
+/// undocumented, differs from WallAttachment <https://vk.com/dev/objects/attachments_w> by album
+/// which does not equal to album::Album (id: String)
+#[derive(Deserialize, Clone, Debug)]
+pub struct NewsAttachment {
+    #[serde(rename = "type")]
+    pub type_: String,
+
+    // type = photo
+    pub photo: Option<photo::Photo>,
+
+    // type = posted_photo
+    pub posted_photo: Option<attachment::PostedPhoto>,
+
+    // type = video
+    pub video: Option<video::Video>,
+
+    // type = audio
+    pub audio: Option<audio::Audio>,
+
+    // type = doc
+    pub doc: Option<document::Document>,
+
+    // type = graffiti
+    pub graffiti: Option<attachment::Graffiti>,
+
+    // type = link
+    pub link: Option<link::Link>,
+
+    // type = note
+    pub note: Option<note::Note>,
+
+    // type = app
+    pub app: Option<attachment::App>,
+
+    // type = poll
+    pub poll: Option<poll::Poll>,
+
+    // type = page
+    pub page: Option<page::Page>,
+
+    // type = album
+    pub album: Option<Album>,
+
+    // type = photos_list
+    pub photos_list: Option<Vec<String>>,
+
+    // type = market
+    pub market: Option<market_item::MarketItem>,
+
+    // type = market_album
+    pub market_album: Option<market_album::MarketAlbum>,
+
+    // type = sticker
+    pub sticker: Option<sticker::Sticker>,
+
+    // type = pretty_cards
+    pub cards: Option<Vec<attachment::Card>>,
+
+    // type = event
+    pub event: Option<attachment::Event>,
+
+    // type = podcast
+    pub podcast: Option<podcast::Podcast>,
+}
+
 #[derive(Deserialize, Clone, Debug)]
 pub struct Item {
     // тип списка новости, соответствующий одному из значений параметра filters
@@ -108,7 +189,7 @@ pub struct Item {
     pub reposts: Option<post::Reposts>,
     // находится в записях со стен и содержит массив объектов, которые прикреплены к текущей новости (фотография, ссылка и т.п.).
     // Более подробная информация представлена на странице <https://vk.com/dev/objects/attachments_w>
-    pub attachments: Option<Vec<attachment::WallAttachment>>,
+    pub attachments: Option<Vec<NewsAttachment>>,
     // geo — находится в записях со стен, в которых имеется информация о местоположении
     pub geo: Option<geo::Geo>,
     // (кроме записей со стен) содержат информацию о количестве объектов и до 5 последних объектов, связанных с данной новостью
