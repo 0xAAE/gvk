@@ -1,2 +1,2 @@
 mod news_item;
-pub use news_item::NewsItemModel;
+pub use news_item::{NewsItemModel, NewsUpdate};

@@ -1,3 +1,4 @@
+use crate::models::NewsUpdate;
 use crate::storage::Storage;
 use crate::ui::Message;
 use rvk::APIClient;
@@ -20,7 +21,7 @@ mod user;
 pub use user::{User, UserViewModel};
 mod download;
 mod newsfeed;
-pub use newsfeed::{Item as NewsItem, NewsFeed, NewsUpdate};
+pub use newsfeed::NewsProvider;
 
 type MessageSender = Sender<Message>;
 type StopReceiver = oneshot::Receiver<()>;
@@ -101,11 +102,14 @@ pub fn run_with_own_runtime(
         println!("User view: {}", &view_model);
         let _ = tx.send(Message::OwnInfo(view_model)).await;
 
-        let mut news = NewsFeed::new();
+        let mut news = NewsProvider::new();
         loop {
             // query news
-            if let Some(update) = news.next_update(&mut vk_api).await {
-                match tx.try_send(Message::News(update)) {
+            if let Some(news_feed) = news.next_update(&mut vk_api).await {
+                if let Some(items) = &news_feed.items {
+                    println!("got {} news items", items.len());
+                }
+                match tx.try_send(Message::News(NewsUpdate(news_feed))) {
                     Ok(_) => {}
                     Err(TrySendError::Full(_)) => {
                         //todo: logging

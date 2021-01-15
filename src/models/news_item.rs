@@ -1,5 +1,5 @@
-use crate::vk_provider::{NewsItem, NewsUpdate};
 use chrono::prelude::*;
+use rvk::objects::newsfeed::{Item as NewsItem, NewsFeed};
 use rvk::objects::{group, user};
 use std::iter::{IntoIterator, Iterator};
 
@@ -9,6 +9,8 @@ pub struct NewsItemModel {
     pub datetime: String,
     pub content: String,
 }
+
+pub struct NewsUpdate(pub NewsFeed);
 
 impl IntoIterator for NewsUpdate {
     type Item = NewsItemModel;
@@ -30,9 +32,9 @@ impl NewsUpdateIterator {
     fn new(src: NewsUpdate) -> Self {
         NewsUpdateIterator {
             current: 0,
-            items: src.items.unwrap_or(Vec::new()),
-            users: src.profiles.unwrap_or(Vec::new()),
-            groups: src.groups.unwrap_or(Vec::new()),
+            items: src.0.items.unwrap_or(Vec::new()),
+            users: src.0.profiles.unwrap_or(Vec::new()),
+            groups: src.0.groups.unwrap_or(Vec::new()),
         }
     }
 }

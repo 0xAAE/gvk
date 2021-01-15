@@ -1,4 +1,5 @@
-use crate::vk_provider::{AccessTokenProvider, AuthResponse, NewsUpdate, UserViewModel};
+use crate::models::NewsUpdate;
+use crate::vk_provider::{AccessTokenProvider, AuthResponse, UserViewModel};
 use gio::prelude::*;
 use gtk::prelude::*;
 use gtk::{ApplicationWindow, Builder, Image, Label, ScrolledWindow, Stack};
