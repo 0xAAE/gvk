@@ -82,5 +82,17 @@ impl Iterator for NewsUpdateIterator {
 
 fn process_text(text: &String) -> String {
     // replace & symbol
-    text.replace('&', "&amp;")
+    //text.replace('&', "&amp;")
+
+    let mut result = String::with_capacity(text.len());
+    for c in text.chars() {
+        match c {
+            '&' => result.push_str("&amp;"),
+            //'A'..='Z' => 'X',
+            '<' => result.push_str("&lt;"),
+            '>' => result.push_str("&gt;"),
+            _ => result.push(c),
+        }
+    }
+    result
 }
