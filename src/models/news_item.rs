@@ -3,7 +3,7 @@ use chrono::prelude::*;
 use rvk::objects::{group, user};
 use std::iter::{IntoIterator, Iterator};
 
-pub struct NewsItemViewModel {
+pub struct NewsItemModel {
     pub author: String,
     pub title: String,
     pub datetime: String,
@@ -11,7 +11,7 @@ pub struct NewsItemViewModel {
 }
 
 impl IntoIterator for NewsUpdate {
-    type Item = NewsItemViewModel;
+    type Item = NewsItemModel;
     type IntoIter = NewsUpdateIterator;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -38,7 +38,7 @@ impl NewsUpdateIterator {
 }
 
 impl Iterator for NewsUpdateIterator {
-    type Item = NewsItemViewModel;
+    type Item = NewsItemModel;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.current >= self.items.len() {
@@ -64,7 +64,7 @@ impl Iterator for NewsUpdateIterator {
             let naive = NaiveDateTime::from_timestamp(item.date as i64, 0);
             let datetime: DateTime<Local> =
                 DateTime::<Utc>::from_utc(naive, Utc).with_timezone(&Local);
-            Some(NewsItemViewModel {
+            Some(NewsItemModel {
                 author: source.unwrap_or_default(),
                 title: item.type_.clone(),
                 datetime: format!("{}", datetime.format("%d.%m.%Y %H:%M (%a)")),

@@ -4,7 +4,7 @@
 // Properties are exposed via normal GObject properties. This allows us to use property
 // bindings below to bind the values with what widgets display in the UI
 use super::*;
-use crate::view_models::NewsItemViewModel;
+use crate::models::NewsItemModel;
 use glib::subclass;
 use glib::subclass::prelude::*;
 use glib::translate::*;
@@ -164,7 +164,7 @@ glib_wrapper! {
 // Constructor for new instances. This simply calls glib::Object::new() with
 // initial values for our two properties and then returns the new instance
 impl RowData {
-    pub fn new(model: &NewsItemViewModel) -> RowData {
+    pub fn new(model: &NewsItemModel) -> RowData {
         glib::Object::new(
             Self::static_type(),
             &[
