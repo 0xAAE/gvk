@@ -91,23 +91,31 @@ impl NewsProvider {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::storage::Storage;
-    use std::fs::read_to_string;
+    use std::fs::{read_dir, read_to_string};
     use std::path::Path;
 
     #[test]
     fn deserialize_news_update() {
-        let storage = Storage::new();
-        let json_file = storage.get_cache_dir().to_string() + "/news.json";
-        let path = Path::new(&json_file);
-        let s = read_to_string(&path).unwrap();
-        let result = serde_json::from_str::<NewsFeed>(&s);
-        match result {
-            Ok(_upd) => assert!(true),
-            Err(e) => {
-                let msg = format!("{}", e);
-                println!("{}", msg);
-                assert!(false);
+        if let Ok(mut file_list) = read_dir("resources/tests/newsfeed") {
+            while let Some(file) = file_list.next() {
+                assert!(file.is_ok());
+                let file_name = file.unwrap().path().to_string_lossy().to_string();
+                let path = Path::new(file_name.as_str());
+                let json = read_to_string(&path).unwrap();
+                let result = serde_json::from_str::<NewsFeed>(&json);
+                match result {
+                    Ok(upd) => {
+                        assert!(
+                            upd.items.is_some() || upd.profiles.is_some() || upd.groups.is_some()
+                        );
+                    }
+                    Err(e) => {
+                        println!("test failed for {}", file_name);
+                        let msg = format!("{}", e);
+                        println!("{}", msg);
+                        assert!(false);
+                    }
+                }
             }
         }
     }
