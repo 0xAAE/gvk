@@ -1,13 +1,22 @@
 use crate::vk_provider::AuthResponse;
+use std::collections::HashMap;
 use std::env::vars_os;
 use std::fmt;
 use std::fs::{read_to_string, write};
 use std::path::Path;
+use std::sync::RwLock;
 use tokio::fs::File as TokioFile;
 use tokio::io::{AsyncReadExt, AsyncWriteExt}; // for read_to_end() / write_all()
 
+pub mod download;
+
 pub struct Storage {
+    // root path
     cache_home: String,
+    // file storage
+    cache_files: String,
+    // URL --> file pathname
+    files: RwLock<HashMap<String, String>>,
 }
 
 pub enum StorageError {
@@ -17,6 +26,7 @@ pub enum StorageError {
     CreateFile(String),
     OpenFile(String),
     ReadWriteFile(String),
+    DownloadFile(String),
 }
 
 impl fmt::Display for StorageError {
@@ -30,6 +40,7 @@ impl fmt::Display for StorageError {
             StorageError::ReadWriteFile(err) => {
                 write!(f, "failed reading or writing file: {}", err)
             }
+            StorageError::DownloadFile(name) => write!(f, "failed downloading file {}", name),
         }
     }
 }
@@ -50,14 +61,25 @@ impl Storage {
                 }
             }
         }
+        // root cache
         let cache_home = home_dir + "/" + &cache_dir + "/gvk";
+        // files cache
+        let mut cache_files = cache_home.clone() + "/files";
+        if std::fs::create_dir_all(&Path::new(cache_files.as_str())).is_err() {
+            println!("failed creating files cache in {}", cache_files.as_str());
+            cache_files = cache_home.clone();
+        }
         // tune-up RVK tracing
         let mut trace_dir = cache_home.clone() + "/failed";
         if std::fs::create_dir_all(&Path::new(trace_dir.as_str())).is_err() {
             trace_dir = cache_home.clone();
         }
         std::env::set_var("RVK_TRACE_DIR", trace_dir.as_str());
-        Storage { cache_home }
+        Storage {
+            cache_home,
+            cache_files,
+            files: RwLock::new(HashMap::new()),
+        }
     }
 
     pub fn get_cache_dir(&self) -> &str {
@@ -81,6 +103,37 @@ impl Storage {
             .map_err(|e| StorageError::ReadWriteFile(format!("{}", e).into()))?;
 
         Ok(())
+    }
+
+    /// If file is already in cache returns its pathname,
+    /// otherwise downloads file, then caches it and also return its pathname
+    pub async fn get_file(&self, uri: &str) -> Result<String, StorageError> {
+        if uri.is_empty() {
+            Err(StorageError::DownloadFile("name not set".into()))
+        } else {
+            {
+                if let Ok(files_read) = self.files.read() {
+                    if let Some(exists) = files_read.get(uri) {
+                        return Ok(exists.clone());
+                    }
+                }
+            }
+            download::file(uri, self.cache_files.as_str())
+                .await
+                .map(|s| {
+                    if let Ok(mut write) = self.files.write() {
+                        write.insert(uri.to_string(), s.clone());
+                        s
+                    } else {
+                        println!("unrecoverable inner error: cannot access files cache");
+                        String::new()
+                    }
+                })
+                .map_err(|e| {
+                    println!("download error: {}", e);
+                    StorageError::DownloadFile(uri.to_string())
+                })
+        }
     }
 
     pub async fn load_auth_async(&self) -> Result<AuthResponse, StorageError> {

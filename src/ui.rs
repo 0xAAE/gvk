@@ -65,7 +65,6 @@ pub fn build(application: &gtk::Application, rx: MessageReceiver) {
             let news_item_datetime: gtk::Label = builder
                 .get_object("news_item_datetime")
                 .expect("Couldn't get news_item_datetime");
-            news_item_datetime.set_halign(gtk::Align::Start);
             item.bind_property("datetime", &news_item_datetime, "label")
                 .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
                 .build();
@@ -74,7 +73,6 @@ pub fn build(application: &gtk::Application, rx: MessageReceiver) {
             let news_item_content: gtk::Label = builder
                 .get_object("news_item_content")
                 .expect("Couldn't get news_item_content");
-            news_item_content.set_halign(gtk::Align::Start);
             item.bind_property("content", &news_item_content, "label")
                 .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
                 .build();

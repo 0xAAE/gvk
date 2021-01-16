@@ -46,10 +46,9 @@ Author: 0xAAE
         <property name="title" translatable="yes">t</property>
         <property name="subtitle" translatable="yes">st</property>
         <child>
-          <object class="GtkLabel" id="news_item_datetime">
+          <object class="GtkImage" id="news_item_logo">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
-            <property name="label" translatable="yes">dt</property>
           </object>
         </child>
       </object>
@@ -60,9 +59,24 @@ Author: 0xAAE
       </packing>
     </child>
     <child>
+      <object class="GtkLabel" id="news_item_datetime">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="halign">start</property>
+        <property name="label" translatable="yes">date time</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">1</property>
+      </packing>
+    </child>
+    <child>
       <object class="GtkLabel" id="news_item_content">
         <property name="visible">True</property>
         <property name="can-focus">False</property>
+        <property name="halign">start</property>
+        <property name="label" translatable="yes">content</property>
         <property name="use-markup">True</property>
         <property name="wrap">True</property>
         <property name="selectable">True</property>
@@ -70,7 +84,20 @@ Author: 0xAAE
       <packing>
         <property name="expand">False</property>
         <property name="fill">True</property>
-        <property name="position">1</property>
+        <property name="position">2</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkFlowBox" id="news_item_images">
+        <property name="visible">True</property>
+        <property name="can-focus">False</property>
+        <property name="column-spacing">5</property>
+        <property name="row-spacing">5</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">3</property>
       </packing>
     </child>
   </object>

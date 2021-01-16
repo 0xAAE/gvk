@@ -1,5 +1,5 @@
 use crate::models::NewsUpdate;
-use crate::storage::Storage;
+use crate::storage::{download, Storage};
 use crate::ui::Message;
 use rvk::APIClient;
 use std::sync::Arc;
@@ -19,7 +19,6 @@ mod account;
 pub use account::{Account, AccountProvider};
 mod user;
 pub use user::{User, UserViewModel};
-mod download;
 mod newsfeed;
 pub use newsfeed::NewsProvider;
 
@@ -96,9 +95,7 @@ pub fn run_with_own_runtime(
         }
         let user = user.unwrap();
         println!("User: {}", user);
-        let mut view_model = user.get_view_model();
-        // download image file:
-        finalize_view_model(&mut view_model, &storage).await;
+        let view_model = user.get_view_model(&storage).await;
         println!("User view: {}", &view_model);
         let _ = tx.send(Message::OwnInfo(view_model)).await;
 
@@ -132,14 +129,4 @@ pub fn run_with_own_runtime(
             }
         }
     });
-}
-
-async fn finalize_view_model(view_model: &mut UserViewModel, storage: &Storage) {
-    match download::file(&view_model.image, storage.get_cache_dir()).await {
-        Ok(pathname) => view_model.image = pathname,
-        Err(e) => {
-            view_model.image.clear();
-            println!("User image error: {}", e)
-        }
-    }
 }
