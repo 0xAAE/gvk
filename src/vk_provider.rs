@@ -1,5 +1,5 @@
 use crate::models::NewsUpdate;
-use crate::storage::{download, Storage};
+use crate::storage::{SharedStorage, Storage};
 use crate::ui::Message;
 use rvk::APIClient;
 use std::sync::Arc;
@@ -41,7 +41,7 @@ pub fn run_with_own_runtime(
         .unwrap();
 
     runtime.block_on(async move {
-        let storage = Arc::new(Storage::new());
+        let storage: SharedStorage = Arc::new(Storage::new());
         let mut rx_stop = rx_stop;
 
         // test access to vk.com account
@@ -99,11 +99,10 @@ pub fn run_with_own_runtime(
         println!("User view: {}", &view_model);
         let _ = tx.send(Message::OwnInfo(view_model)).await;
 
-        let mut news = NewsProvider::new();
+        let mut news = NewsProvider::new(storage.clone());
         loop {
-            // query news
-            // todo: next_update()!
-            if let Some(news_feed) = news.prev_update(&mut vk_api).await {
+            // periodically query news
+            if let Some(news_feed) = news.next_update(&mut vk_api).await {
                 if let Some(items) = &news_feed.items {
                     println!("got {} news items", items.len());
                 }

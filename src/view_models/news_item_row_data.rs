@@ -17,19 +17,35 @@ mod imp {
     // The actual data structure that stores our values. This is not accessible
     // directly from the outside.
     pub struct RowData {
+        // author name
         author: RefCell<Option<String>>,
+        // author image / portrait
+        avatar: RefCell<Option<String>>,
+        // type: post, photo, etc.
         itemtype: RefCell<Option<String>>,
+        // date and time
         datetime: RefCell<Option<String>>,
+        // text
         content: RefCell<Option<String>>,
     }
 
     // GObject property definitions for our three values
-    static PROPERTIES: [subclass::Property; 4] = [
+    static PROPERTIES: [subclass::Property; 5] = [
         subclass::Property("author", |author| {
             glib::ParamSpec::string(
                 author,
                 "Author",
                 "Author",
+                // Default value
+                None,
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("avatar", |avatar| {
+            glib::ParamSpec::string(
+                avatar,
+                "Avatar",
+                "Avatar",
                 // Default value
                 None,
                 glib::ParamFlags::READWRITE,
@@ -89,6 +105,7 @@ mod imp {
         fn new() -> Self {
             Self {
                 author: RefCell::new(None),
+                avatar: RefCell::new(None),
                 itemtype: RefCell::new(None),
                 datetime: RefCell::new(None),
                 content: RefCell::new(None),
@@ -114,6 +131,12 @@ mod imp {
                         .get()
                         .expect("author type conformity checked by `Object::set_property`");
                     self.author.replace(author);
+                }
+                subclass::Property("avatar", ..) => {
+                    let avatar = value
+                        .get()
+                        .expect("avatar type conformity checked by `Object::set_property`");
+                    self.avatar.replace(avatar);
                 }
                 subclass::Property("itemtype", ..) => {
                     let itemtype = value
@@ -142,6 +165,7 @@ mod imp {
 
             match *prop {
                 subclass::Property("author", ..) => Ok(self.author.borrow().to_value()),
+                subclass::Property("avatar", ..) => Ok(self.avatar.borrow().to_value()),
                 subclass::Property("itemtype", ..) => Ok(self.itemtype.borrow().to_value()),
                 subclass::Property("datetime", ..) => Ok(self.datetime.borrow().to_value()),
                 subclass::Property("content", ..) => Ok(self.content.borrow().to_value()),
@@ -169,6 +193,7 @@ impl RowData {
             Self::static_type(),
             &[
                 ("author", &model.author),
+                ("avatar", &model.avatar),
                 ("itemtype", &model.itemtype),
                 ("datetime", &model.datetime),
                 ("content", &model.content),

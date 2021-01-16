@@ -46,9 +46,11 @@ Author: 0xAAE
         <property name="title" translatable="yes">t</property>
         <property name="subtitle" translatable="yes">st</property>
         <child>
-          <object class="GtkImage" id="news_item_logo">
+          <object class="GtkImage" id="news_item_avatar">
             <property name="visible">True</property>
             <property name="can-focus">False</property>
+            <property name="xpad">5</property>
+            <property name="ypad">5</property>
           </object>
         </child>
       </object>

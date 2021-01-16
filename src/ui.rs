@@ -60,6 +60,13 @@ pub fn build(application: &gtk::Application, rx: MessageReceiver) {
             item.bind_property("author", &header, "title")
                 .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
                 .build();
+            let avatar: gtk::Image = builder
+                .get_object("news_item_avatar")
+                .expect("Couldn't get news_item_avatar");
+            //avatar.set_from_file(&item.avatar);
+            item.bind_property("avatar", &avatar, "file")
+                .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
+                .build();
 
             // datetime
             let news_item_datetime: gtk::Label = builder

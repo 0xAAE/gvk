@@ -4,11 +4,13 @@ use std::env::vars_os;
 use std::fmt;
 use std::fs::{read_to_string, write};
 use std::path::Path;
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 use tokio::fs::File as TokioFile;
 use tokio::io::{AsyncReadExt, AsyncWriteExt}; // for read_to_end() / write_all()
 
 pub mod download;
+
+pub type SharedStorage = Arc<Storage>;
 
 pub struct Storage {
     // root path

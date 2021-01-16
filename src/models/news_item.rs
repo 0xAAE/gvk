@@ -14,6 +14,7 @@ use std::iter::{IntoIterator, Iterator};
 
 pub struct NewsItemModel {
     pub author: String,
+    pub avatar: String,
     pub itemtype: String,
     pub datetime: String,
     pub content: String,
@@ -57,23 +58,29 @@ impl Iterator for NewsUpdateIterator {
         } else {
             let item = self.items.get(self.current).unwrap();
             self.current += 1;
-            let source = if item.source_id > 0 {
-                // source is user
+            let avatar: String;
+            let author = if item.source_id > 0 {
+                // author is user
                 if let Some(user) = self.users.iter().find(|u| u.id == item.source_id) {
+                    avatar = user.photo_50.as_ref().unwrap_or(&String::new()).clone();
                     Some(user.last_name.clone() + " " + user.last_name.as_str())
                 } else {
+                    avatar = String::new();
                     None
                 }
             } else {
                 // source is group
                 if let Some(grp) = self.groups.iter().find(|g| g.id == -item.source_id) {
+                    avatar = grp.photo_50.clone();
                     Some(grp.name.clone())
                 } else {
+                    avatar = String::new();
                     None
                 }
             };
             Some(NewsItemModel {
-                author: source.unwrap_or_default(),
+                author: author.unwrap_or(String::new()),
+                avatar,
                 itemtype: item.type_.clone(),
                 datetime: format!(
                     "{}",
