@@ -50,9 +50,14 @@ impl Storage {
                 }
             }
         }
-        Storage {
-            cache_home: home_dir + "/" + &cache_dir + "/gvk",
+        let cache_home = home_dir + "/" + &cache_dir + "/gvk";
+        // tune-up RVK tracing
+        let mut trace_dir = cache_home.clone() + "/failed";
+        if std::fs::create_dir_all(&Path::new(trace_dir.as_str())).is_err() {
+            trace_dir = cache_home.clone();
         }
+        std::env::set_var("RVK_TRACE_DIR", trace_dir.as_str());
+        Storage { cache_home }
     }
 
     pub fn get_cache_dir(&self) -> &str {

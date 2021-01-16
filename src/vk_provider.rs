@@ -105,7 +105,8 @@ pub fn run_with_own_runtime(
         let mut news = NewsProvider::new();
         loop {
             // query news
-            if let Some(news_feed) = news.next_update(&mut vk_api).await {
+            // todo: next_update()!
+            if let Some(news_feed) = news.prev_update(&mut vk_api).await {
                 if let Some(items) = &news_feed.items {
                     println!("got {} news items", items.len());
                 }

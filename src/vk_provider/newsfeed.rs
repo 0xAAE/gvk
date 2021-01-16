@@ -1,65 +1,77 @@
+use crate::utils::local_from_timestamp;
 use chrono::Utc;
 use rvk::{methods::newsfeed, objects::newsfeed::NewsFeed, APIClient, Params};
-use std::env;
 
 // a maximal time interval to limit news updates
-const MAX_UPDATE_DELTA_SEC: u64 = 3_600; // 1_200; // 20 minutes
+const MAX_UPDATE_DELTA_SEC: u64 = 600; // 10 minutes
 
 /// <https://vk.com/dev/newsfeed.get>
 pub struct NewsProvider {
-    start_sec: u64,
-    // end_sec: u64,
-    start_from: String,
+    received_from: u64,
+    received_to: u64,
+    last_next_from: String,
 }
 
 impl NewsProvider {
     pub fn new() -> Self {
-        let end_sec = Utc::now().timestamp() as u64;
-        let start_sec = end_sec - MAX_UPDATE_DELTA_SEC; // for the last hour
+        let received_from = Utc::now().timestamp() as u64;
+        let received_to = received_from; // for the last hour
         NewsProvider {
-            start_sec,
-            // end_sec,
-            start_from: String::new(),
+            received_from,
+            received_to,
+            last_next_from: String::new(),
         }
     }
 
     // returns pack of the news preceeding the current the most old one, i.e. start_sec - MAX_UPDATE_DELTA_SEC
     pub async fn prev_update(&mut self, api: &mut APIClient) -> Option<NewsFeed> {
-        let upd_end_time = self.start_sec;
-        let upd_start_time = upd_end_time - MAX_UPDATE_DELTA_SEC;
+        let end_time = self.received_from;
+        let start_time = end_time - MAX_UPDATE_DELTA_SEC;
         let mut params = Params::new();
-        params.insert("start_time".into(), format!("{}", upd_start_time).into());
-        params.insert("end_time".into(), format!("{}", upd_end_time).into());
-        self.do_update(api, params).await
+        params.insert("start_time".into(), format!("{}", start_time).into());
+        params.insert("end_time".into(), format!("{}", end_time).into());
+        self.received_from = start_time;
+        self.do_update(api, params)
+            .await
+            .map(|upd| {
+                self.last_next_from = if let Some(val) = upd.next_from.as_ref() {
+                    val.clone()
+                } else {
+                    String::new()
+                };
+                upd
+            })
+            .or_else(|| {
+                println!(
+                    "drop news from {} to {} due to error",
+                    format!(
+                        "{}",
+                        local_from_timestamp(start_time as i64).format("%d.%m.%Y %H:%M")
+                    )
+                    .as_str(),
+                    format!(
+                        "{}",
+                        local_from_timestamp(end_time as i64).format("%d.%m.%Y %H:%M")
+                    )
+                    .as_str()
+                );
+                None
+            })
     }
 
     // returrns next protion of the news, i.e. subsequent to the most recent ones
     pub async fn next_update(&mut self, api: &mut APIClient) -> Option<NewsFeed> {
         let mut params = Params::new();
-        params.insert("start_from".into(), self.start_from.clone());
+        //params.insert("start_from".into(), self.last_next_from.clone());
+        params.insert("start_time".into(), format!("{}", self.received_to));
+        self.received_to = Utc::now().timestamp() as u64;
         self.do_update(api, params).await
     }
 
-    async fn do_update(&mut self, api: &mut APIClient, params: Params) -> Option<NewsFeed> {
-        let trace: u32 = if let Ok(s) = env::var("TRACE_NEWS") {
-            s.as_str().parse::<u32>().unwrap_or(0)
-        } else {
-            0
-        };
-        api.trace_response(trace != 0);
+    async fn do_update(&self, api: &mut APIClient, params: Params) -> Option<NewsFeed> {
         match newsfeed::get::<NewsFeed>(api, params).await {
-            Ok(upd) => {
-                env::set_var("TRACE_NEWS", "0");
-                api.trace_response(false);
-                self.start_from = if let Some(val) = upd.next_from.as_ref() {
-                    val.clone()
-                } else {
-                    String::new()
-                };
-                Some(upd)
-            }
+            Ok(upd) => Some(upd),
             Err(e) => {
-                env::set_var("TRACE_NEWS", "1");
                 match e {
                     rvk::error::Error::API(e) => {
                         println!(

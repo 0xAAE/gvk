@@ -1,4 +1,13 @@
-use chrono::prelude::*;
+//! Produces news item model objects from rvk::objects::newsfeed::* implementing all required operations and types:
+//! * NewsItemModel - the result data, also the source for the NewsItemViewModel
+//! * NewsUpdateIterator - iterates over NewsUpdate providing NewsItemModel objects
+//! * NewsUpdate - the wrapper over rvk::objects::newsfeed::NewsFeed, implements IntoIterator for NewsUpdateIterator
+//! So, having the NewsUpdate(rvk::objects::newsfeed::NewsFeed) one can turn it into NewsUpdateIterator which
+//! in its turn produces NewsItemModel objects from underlying rvk::objects::newsfeed::Item objects.
+//! While producing models from siurce items there are some transformations applied:
+//! * all markdown control symbols are "preserved", examples: '&' --> &amp; or '>' --> &gt;
+//! * all URLs are surrounded by <a href=> tag
+use crate::utils::local_from_timestamp;
 use rvk::objects::newsfeed::{Item as NewsItem, NewsFeed};
 use rvk::objects::{group, user};
 use std::iter::{IntoIterator, Iterator};
@@ -63,13 +72,13 @@ impl Iterator for NewsUpdateIterator {
                     None
                 }
             };
-            let naive = NaiveDateTime::from_timestamp(item.date as i64, 0);
-            let datetime: DateTime<Local> =
-                DateTime::<Utc>::from_utc(naive, Utc).with_timezone(&Local);
             Some(NewsItemModel {
                 author: source.unwrap_or_default(),
                 itemtype: item.type_.clone(),
-                datetime: format!("{}", datetime.format("%d.%m.%Y %H:%M (%a)")),
+                datetime: format!(
+                    "{}",
+                    local_from_timestamp(item.date).format("%d.%m.%Y %H:%M (%a)")
+                ),
                 content: if let Some(text) = item.text.as_ref() {
                     process_text(text)
                 } else {

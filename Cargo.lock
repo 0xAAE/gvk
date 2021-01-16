@@ -1107,8 +1107,9 @@ dependencies = [
 [[package]]
 name = "rvk"
 version = "0.19.0"
-source = "git+https://github.com/0xAAE/rvk.git?branch=research#b14654ca567595512ab568f920f9bb251018d3c3"
+source = "git+https://github.com/0xAAE/rvk.git?branch=research#0c9d308a8c2f4c07f95f4f9f186e2d5cbb76add5"
 dependencies = [
+ "chrono",
  "heck",
  "lazy_static",
  "reqwest",
