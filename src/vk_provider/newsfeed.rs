@@ -3,7 +3,7 @@ use chrono::Utc;
 use rvk::{methods::newsfeed, objects::newsfeed::NewsFeed, APIClient, Params};
 
 // a maximal time interval to limit news updates
-const MAX_UPDATE_DELTA_SEC: u64 = 600; // 10 minutes
+const MAX_UPDATE_DELTA_SEC: u64 = 3_600; // 60 minutes
 
 /// <https://vk.com/dev/newsfeed.get>
 pub struct NewsProvider {
@@ -30,6 +30,7 @@ impl NewsProvider {
         let mut params = Params::new();
         params.insert("start_time".into(), format!("{}", start_time).into());
         params.insert("end_time".into(), format!("{}", end_time).into());
+        params.insert("count".into(), "100".into());
         self.received_from = start_time;
         self.do_update(api, params)
             .await
@@ -64,6 +65,7 @@ impl NewsProvider {
         let mut params = Params::new();
         //params.insert("start_from".into(), self.last_next_from.clone());
         params.insert("start_time".into(), format!("{}", self.received_to));
+        params.insert("count".into(), "100".into());
         self.received_to = Utc::now().timestamp() as u64;
         self.do_update(api, params).await
     }
