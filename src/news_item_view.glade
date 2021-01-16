@@ -65,6 +65,7 @@ Author: 0xAAE
         <property name="can-focus">False</property>
         <property name="use-markup">True</property>
         <property name="wrap">True</property>
+        <property name="selectable">True</property>
       </object>
       <packing>
         <property name="expand">False</property>

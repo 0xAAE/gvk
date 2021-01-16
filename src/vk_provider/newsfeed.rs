@@ -3,7 +3,7 @@ use rvk::{methods::newsfeed, objects::newsfeed::NewsFeed, APIClient, Params};
 use std::env;
 
 // a maximal time interval to limit news updates
-const MAX_UPDATE_DELTA_SEC: u64 = 1_200; // 20 minutes
+const MAX_UPDATE_DELTA_SEC: u64 = 3_600; // 1_200; // 20 minutes
 
 /// <https://vk.com/dev/newsfeed.get>
 pub struct NewsProvider {
