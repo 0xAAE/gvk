@@ -4,7 +4,10 @@ use gio::prelude::*;
 use gtk::prelude::*;
 use gtk::{ApplicationWindow, Builder, Image, Label, ScrolledWindow, Stack};
 use std::cell::RefCell;
-use tokio::sync::{mpsc::Receiver, oneshot};
+use tokio::sync::{
+    mpsc::{Receiver, Sender},
+    oneshot,
+};
 use webkit2gtk::{LoadEvent, WebContext, WebView, WebViewExt};
 
 use crate::view_models::RowData;
@@ -19,11 +22,21 @@ pub enum Message {
     OwnInfo(UserViewModel),
     /// New incoming message to display in the user's wall
     News(NewsUpdate),
+    /// Older news to let user scroll back
+    OlderNews(NewsUpdate),
+}
+
+pub enum Request {
+    // Request a portion of news prior the oldest
+    NewsOlder,
+    // request a portion of news after the most recent
+    NewsNext,
 }
 
 type MessageReceiver = Receiver<Message>;
+type RequestSender = Sender<Request>;
 
-pub fn build(application: &gtk::Application, rx: MessageReceiver) {
+pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: RequestSender) {
     let main_glade = include_str!("main.glade");
     let builder = Builder::from_string(main_glade);
 
@@ -90,10 +103,51 @@ pub fn build(application: &gtk::Application, rx: MessageReceiver) {
         }),
     );
 
+    // signals
+    let tx_req_copy = tx_req.clone();
+    builder.connect_signals(move |_, handler_name| {
+        // This is the one-time callback to register signals.
+        // Here we map each handler name to its handler.
+        if handler_name == "news_edge_reached" {
+            // Return the news scroll handler
+            let tx_req_copy2 = tx_req_copy.clone();
+            Box::new(move |values| {
+                for val in values {
+                    if let Some(pos) = val.downcast_ref::<gtk::PositionType>() {
+                        if let Some(pos) = pos.get() {
+                            match pos {
+                                gtk::PositionType::Top => {
+                                    log::debug!("reached top, requesting older news");
+                                    let main_context = glib::MainContext::default();
+                                    let tx_req_copy3 = tx_req_copy2.clone();
+                                    main_context.spawn_local(async move {
+                                        let _ = tx_req_copy3.send(Request::NewsOlder).await;
+                                    });
+                                }
+                                gtk::PositionType::Bottom => {
+                                    log::debug!("reached bottom, requesting more recent news");
+                                    let main_context = glib::MainContext::default();
+                                    let tx_req_copy3 = tx_req_copy2.clone();
+                                    main_context.spawn_local(async move {
+                                        let _ = tx_req_copy3.send(Request::NewsNext).await;
+                                    });
+                                }
+                                _ => log::warn!("reached unreachable"),
+                            }
+                        };
+                    }
+                }
+                None
+            })
+        } else {
+            panic!("Unknown handler name {}", handler_name)
+        }
+    });
+
     // select visible right pane
     show_right_pane(&builder, "page_view_news");
 
-    launch_msg_handler(news_item_model, builder, rx);
+    launch_msg_handler(news_item_model, builder, rx_msg);
 
     window.show_all();
 }
@@ -119,6 +173,13 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                 Message::News(update) => {
                     for view_model in update.into_iter().rev() {
                         model.append(&RowData::new(&view_model));
+                    }
+                }
+                Message::OlderNews(update) => {
+                    // natural news order is from most recent to oldest,
+                    // so insert every next prior previous:
+                    for view_model in update.into_iter() {
+                        model.insert(0, &RowData::new(&view_model));
                     }
                 }
             };

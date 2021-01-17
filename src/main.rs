@@ -21,15 +21,23 @@ fn main() {
         .format_timestamp(Some(TimestampPrecision::Seconds))
         .init();
 
-    // Create a channel between communication thread and main event loop:
-    let (tx_msg, rx_msg) = mpsc::channel(1000);
+    // Create a channel from communication thread to main event loop (UI):
+    let (tx_msg, rx_msg) = mpsc::channel(1_000);
+
+    // Create a channel from the main loop (UI) to communication thread:
+    let (tx_req, rx_req) = mpsc::channel(1_000);
 
     let application = gtk::Application::new(Some("com.aae.gvk.example"), Default::default())
         .expect("Initialization failed...");
 
     let rx_msg_ref = RefCell::new(Some(rx_msg));
+    let tx_req_ref = RefCell::new(Some(tx_req));
     application.connect_activate(move |app| {
-        ui::build(app, rx_msg_ref.borrow_mut().take().unwrap());
+        ui::build(
+            app,
+            rx_msg_ref.borrow_mut().take().unwrap(),
+            tx_req_ref.borrow_mut().take().unwrap(),
+        );
     });
 
     // Create a channel to send stop to communication thread aftre the ui main loop stops
@@ -43,6 +51,7 @@ fn main() {
             vk_provider::run_with_own_runtime(
                 rx_stop,
                 tx_msg,
+                rx_req,
                 tokio_stack_size,
                 tokio_thread_pool_size,
             );
