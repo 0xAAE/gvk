@@ -117,7 +117,7 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                     show_user_info(&ui_builder, &vm);
                 }
                 Message::News(update) => {
-                    for view_model in update {
+                    for view_model in update.into_iter().rev() {
                         model.append(&RowData::new(&view_model));
                     }
                 }
