@@ -58,7 +58,7 @@ fn main() {
         })
         .unwrap();
     application.run(&args().collect::<Vec<_>>());
-    log::debug!("GUI has stopped");
+    log::debug!("UI has stopped");
     if tx_stop.send(()).is_ok() {
         let _ = handle.join();
     }

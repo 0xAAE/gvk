@@ -8,8 +8,7 @@ use tokio::sync::{
     mpsc::{error::TrySendError, Receiver, Sender},
     oneshot,
 };
-use tokio::time::sleep;
-use tokio::time::{timeout, Duration};
+use tokio::time::{sleep, Duration};
 
 mod access_token_provider;
 pub use access_token_provider::AccessTokenProvider;
@@ -42,6 +41,7 @@ pub fn run_with_own_runtime(
         .unwrap();
 
     runtime.block_on(async move {
+        log::info!("starting main worker");
         // main task, executes until inner error or rx_stop is received
         let worker = async move {
             let storage: SharedStorage = Arc::new(Storage::new());
@@ -88,7 +88,7 @@ pub fn run_with_own_runtime(
             log::debug!("authentication: {}", auth);
             log::info!("account: {}", account);
             // create VK client
-            let mut vk_api = APIClient::new(auth.get_access_token());
+            let vk_api = Arc::new(APIClient::new(auth.get_access_token()));
             // request own user info
             let user = User::query_async(&vk_api, auth.get_user_id()).await;
             if user.is_none() {
@@ -102,12 +102,57 @@ pub fn run_with_own_runtime(
             if let Err(e) = tx_msg.send(Message::OwnInfo(view_model)).await {
                 log::error!("failed updating user info, {}", e);
             }
+            let news = Arc::new(NewsProvider::new());
 
-            let mut news = NewsProvider::new();
-            let mut rx_req = rx_req;
+            // start task handling rx_req
+            let vk_api_copy = vk_api.clone();
+            let news_copy = news.clone();
+            let storage_copy = storage.clone();
+            let tx_msg_copy = tx_msg.clone();
+            tokio::spawn(async move {
+                log::info!("starting UI requests handler");
+                let mut rx_req = rx_req;
+                loop {
+                    if let Some(req) = rx_req.recv().await {
+                        match req {
+                            // more news requested vy UI
+                            Request::NewsNext => {
+                                log::debug!("UI requested more news, please wait")
+                            }
+                            // older news requested by UI
+                            Request::NewsOlder => {
+                                if let Some(news_feed) = news_copy.prev_update(&vk_api_copy).await {
+                                    if let Some(items) = &news_feed.items {
+                                        log::debug!("got {} older news items", items.len());
+                                    }
+                                    let update =
+                                        NewsUpdate::new_async(&news_feed, &storage_copy).await;
+                                    match tx_msg_copy.try_send(Message::OlderNews(update)) {
+                                        Ok(_) => {}
+                                        Err(TrySendError::Full(_)) => {
+                                            log::warn!("data is being produced too fast for UI");
+                                        }
+                                        Err(TrySendError::Closed(_)) => {
+                                            log::info!("UI has stopped, stopping also");
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        log::warn!(
+                            "request channel has closed by sender(s), there are no more requests"
+                        );
+                        break;
+                    }
+                }
+                log::info!("UI requests handler has stopped");
+            });
+
             loop {
                 // periodically query news
-                if let Some(news_feed) = news.next_update(&mut vk_api).await {
+                if let Some(news_feed) = news.next_update(&vk_api).await {
                     if let Some(items) = &news_feed.items {
                         log::debug!("got {} news items", items.len());
                     }
@@ -115,10 +160,10 @@ pub fn run_with_own_runtime(
                     match tx_msg.try_send(Message::News(update)) {
                         Ok(_) => {}
                         Err(TrySendError::Full(_)) => {
-                            log::warn!("data is being produced too fast for GUI");
+                            log::warn!("data is being produced too fast for UI");
                         }
                         Err(TrySendError::Closed(_)) => {
-                            log::info!("GUI has stopped, stopping also");
+                            log::info!("UI has stopped, also stopping");
                             break;
                         }
                     }
@@ -126,39 +171,8 @@ pub fn run_with_own_runtime(
                 if let Err(e) = storage.save_state_async().await {
                     log::warn!("saving storage state failed: {}", e);
                 }
-                // todo: select rx_req + timeout:
-                if let Ok(res) =
-                    tokio::time::timeout(tokio::time::Duration::from_secs(60), rx_req.recv()).await
-                {
-                    match res {
-                        Some(req) => match req {
-                            // more news requested vy UI
-                            Request::NewsNext => log::info!("UI requested more news, please wait"),
-                            // older news requested by UI
-                            Request::NewsOlder => {
-                                if let Some(news_feed) = news.prev_update(&mut vk_api).await {
-                                    if let Some(items) = &news_feed.items {
-                                        log::debug!("got {} older news items", items.len());
-                                    }
-                                    let update = NewsUpdate::new_async(&news_feed, &storage).await;
-                                    match tx_msg.try_send(Message::OlderNews(update)) {
-                                        Ok(_) => {}
-                                        Err(TrySendError::Full(_)) => {
-                                            log::warn!("data is being produced too fast for GUI");
-                                        }
-                                        Err(TrySendError::Closed(_)) => {
-                                            log::info!("GUI has stopped, stopping also");
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        None => log::warn!(
-                            "request channel has closed bysender(s), there are no more requests"
-                        ),
-                    }
-                }
+
+                // pause main provider task until time to get next update from vk.com
                 sleep(Duration::from_millis(60_000)).await;
             }
         };
@@ -168,5 +182,6 @@ pub fn run_with_own_runtime(
             _ = rx_stop => log::debug!("get command stop, exitting"),
             _ = worker => log::debug!("has stopped itself"),
         }
+        log::info!("main worker has stopped");
     });
 }

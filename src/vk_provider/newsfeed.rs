@@ -1,15 +1,20 @@
 use crate::utils::local_from_timestamp;
 use chrono::Utc;
 use rvk::{methods::newsfeed, objects::newsfeed::NewsFeed, APIClient, Params};
+use std::sync::{
+    atomic::{AtomicU64, Ordering},
+    Mutex,
+};
 
 // a maximal time interval to limit news updates
 const MAX_UPDATE_DELTA_SEC: u64 = 3_600; // 60 minutes
 
 /// <https://vk.com/dev/newsfeed.get>
+/// Multi-threaded, callef from a couple of tasks
 pub struct NewsProvider {
-    received_from: u64,
-    received_to: u64,
-    last_next_from: String,
+    received_from: AtomicU64,
+    received_to: AtomicU64,
+    last_next_from: Mutex<String>,
 }
 
 impl NewsProvider {
@@ -18,32 +23,37 @@ impl NewsProvider {
         let received_from = Utc::now().timestamp() as u64 - MAX_UPDATE_DELTA_SEC;
         let received_to = received_from; // for the last hour
         NewsProvider {
-            received_from,
-            received_to,
-            last_next_from: String::new(),
+            received_from: AtomicU64::new(received_from),
+            received_to: AtomicU64::new(received_to),
+            last_next_from: Mutex::new(String::new()),
         }
     }
 
     // returns pack of the news preceeding the current the most old one, i.e. start_sec - MAX_UPDATE_DELTA_SEC
-    pub async fn prev_update(&mut self, api: &mut APIClient) -> Option<NewsFeed> {
-        let end_time = self.received_from;
+    pub async fn prev_update(&self, api: &APIClient) -> Option<NewsFeed> {
+        let end_time = self.received_from.load(Ordering::SeqCst);
         let start_time = end_time - MAX_UPDATE_DELTA_SEC;
         let mut params = Params::new();
         params.insert("start_time".into(), format!("{}", start_time).into());
         params.insert("end_time".into(), format!("{}", end_time).into());
         params.insert("count".into(), "100".into());
-        self.received_from = start_time;
+        self.received_from.store(start_time, Ordering::SeqCst);
         self.do_update(api, params)
             .await
             .map(|upd| {
-                self.last_next_from = if let Some(val) = upd.next_from.as_ref() {
+                // if success update next_from
+                let next_from = if let Some(val) = upd.next_from.as_ref() {
                     val.clone()
                 } else {
                     String::new()
                 };
+                if let Ok(mut s) = self.last_next_from.lock() {
+                    *s = next_from;
+                }
                 upd
             })
             .or_else(|| {
+                // if failed log warning
                 log::warn!(
                     "drop news from {} to {} due to error",
                     format!(
@@ -62,16 +72,17 @@ impl NewsProvider {
     }
 
     // returrns next protion of the news, i.e. subsequent to the most recent ones
-    pub async fn next_update(&mut self, api: &mut APIClient) -> Option<NewsFeed> {
+    pub async fn next_update(&self, api: &APIClient) -> Option<NewsFeed> {
         let mut params = Params::new();
-        //params.insert("start_from".into(), self.last_next_from.clone());
-        params.insert("start_time".into(), format!("{}", self.received_to));
+        let start_time = self.received_to.load(Ordering::SeqCst);
+        params.insert("start_time".into(), format!("{}", start_time));
         params.insert("count".into(), "100".into());
-        self.received_to = Utc::now().timestamp() as u64;
+        self.received_to
+            .store(Utc::now().timestamp() as u64, Ordering::SeqCst);
         self.do_update(api, params).await
     }
 
-    async fn do_update(&self, api: &mut APIClient, params: Params) -> Option<NewsFeed> {
+    async fn do_update(&self, api: &APIClient, params: Params) -> Option<NewsFeed> {
         match newsfeed::get::<NewsFeed>(api, params).await {
             Ok(upd) => Some(upd),
             Err(e) => {
