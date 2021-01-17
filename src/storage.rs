@@ -4,13 +4,19 @@ use std::env::vars_os;
 use std::fmt;
 use std::fs::{read_to_string, write};
 use std::path::Path;
-use std::sync::{Arc, RwLock};
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc, RwLock,
+};
 use tokio::fs::File as TokioFile;
 use tokio::io::{AsyncReadExt, AsyncWriteExt}; // for read_to_end() / write_all()
 
 pub mod download;
 
 pub type SharedStorage = Arc<Storage>;
+
+const AUTH_FILE_NAME: &str = "/auth.json";
+const CACHE_FILES_NAME: &str = "/cache_files.json";
 
 pub struct Storage {
     // root path
@@ -19,6 +25,8 @@ pub struct Storage {
     cache_files: String,
     // URL --> file pathname
     files: RwLock<HashMap<String, String>>,
+    // flag files has changed after last saving state
+    is_files_dirty: AtomicBool,
 }
 
 pub enum StorageError {
@@ -29,6 +37,7 @@ pub enum StorageError {
     OpenFile(String),
     ReadWriteFile(String),
     DownloadFile(String),
+    FileCacheDictionary,
 }
 
 impl fmt::Display for StorageError {
@@ -43,6 +52,9 @@ impl fmt::Display for StorageError {
                 write!(f, "failed reading or writing file: {}", err)
             }
             StorageError::DownloadFile(name) => write!(f, "failed downloading file {}", name),
+            StorageError::FileCacheDictionary => {
+                write!(f, "failed to access file cache dictionary")
+            }
         }
     }
 }
@@ -77,10 +89,88 @@ impl Storage {
             trace_dir = cache_home.clone();
         }
         std::env::set_var("RVK_TRACE_DIR", trace_dir.as_str());
+        // try load stored cache_files dictionary
+        let files = Storage::load_state((cache_home.clone() + CACHE_FILES_NAME).as_str())
+            .unwrap_or_else(|| HashMap::new());
+        if files.len() > 0 {
+            println!("storage: loaded {} previously cached files", files.len());
+        }
         Storage {
             cache_home,
             cache_files,
-            files: RwLock::new(HashMap::new()),
+            files: RwLock::new(files),
+            is_files_dirty: AtomicBool::new(false),
+        }
+    }
+
+    pub async fn save_state_async(&self) -> Result<(), StorageError> {
+        if !self.is_files_dirty.load(Ordering::SeqCst) {
+            Ok(())
+        } else {
+            let copy = if let Ok(read) = self.files.read() {
+                read.clone()
+            } else {
+                return Err(StorageError::FileCacheDictionary);
+            };
+            if let Ok(json) = serde_json::to_string(&copy) {
+                let name = self.get_cache_files_name();
+
+                // sync version of saving
+                //let path = Path::new(&name);
+                //write(&path, json.as_bytes()).map_err(|_| StorageError::CreateFile(name))
+
+                // async version of saving
+                let mut file = TokioFile::create(&name)
+                    .await
+                    .map_err(|_| StorageError::CreateFile(name))?;
+                file.write_all(json.as_str().as_bytes())
+                    .await
+                    .map(|_| {
+                        self.is_files_dirty.store(false, Ordering::SeqCst);
+                        ()
+                    })
+                    .map_err(|e| StorageError::ReadWriteFile(format!("{}", e).into()))
+            } else {
+                Err(StorageError::JsonSerialize)
+            }
+            // } else {
+            //     Err(StorageError::FileCacheDictionary)
+        }
+    }
+
+    #[allow(dead_code)]
+    pub async fn load_state_async(&mut self) -> Result<(), StorageError> {
+        let name = self.get_cache_files_name();
+        let mut file = TokioFile::open(&name)
+            .await
+            .map_err(|_| StorageError::OpenFile(name))?;
+        let mut content = vec![];
+        file.read_to_end(&mut content)
+            .await
+            .map_err(|e| StorageError::ReadWriteFile(format!("{}", e).into()))?;
+
+        if let Ok(mut files) = self.files.write() {
+            let src: HashMap<String, String> = serde_json::from_str(
+                std::str::from_utf8(&content).map_err(|_| StorageError::JsonUtf8)?,
+            )
+            .map_err(|_| StorageError::JsonDeserialize)?;
+            *files = src;
+        }
+
+        Ok(())
+    }
+
+    // sync inner version, called from new() method ar afrom any orher sync context
+    fn load_state(filename: &str) -> Option<HashMap<String, String>> {
+        let path = Path::new(filename);
+        if let Ok(s) = read_to_string(&path) {
+            if let Ok(dict) = serde_json::from_str(&s) {
+                Some(dict)
+            } else {
+                None
+            }
+        } else {
+            None
         }
     }
 
@@ -88,8 +178,12 @@ impl Storage {
         &self.cache_home
     }
 
-    pub fn get_auth_file_name(&self) -> String {
-        self.cache_home.clone() + "/auth.json"
+    fn get_auth_file_name(&self) -> String {
+        self.get_cache_dir().to_string() + AUTH_FILE_NAME
+    }
+
+    fn get_cache_files_name(&self) -> String {
+        self.get_cache_dir().to_string() + CACHE_FILES_NAME
     }
 
     pub async fn save_auth_async(&self, auth: &AuthResponse) -> Result<(), StorageError> {
@@ -125,6 +219,7 @@ impl Storage {
                 .map(|s| {
                     if let Ok(mut write) = self.files.write() {
                         write.insert(uri.to_string(), s.clone());
+                        self.is_files_dirty.store(true, Ordering::SeqCst);
                         s
                     } else {
                         println!("unrecoverable inner error: cannot access files cache");

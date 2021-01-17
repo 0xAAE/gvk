@@ -119,6 +119,9 @@ pub fn run_with_own_runtime(
                         }
                     }
                 }
+                if let Err(e) = storage.save_state_async().await {
+                    println!("vk_provider: saving storage state failed: {}", e);
+                }
                 sleep(Duration::from_millis(60_000)).await;
             }
         };
