@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate glib;
 
+use env_logger::{fmt::TimestampPrecision, Builder, Env, Target};
 use gio::prelude::*;
 use std::cell::RefCell;
 use std::env::args;
@@ -15,6 +16,11 @@ mod view_models;
 mod vk_provider;
 
 fn main() {
+    Builder::from_env(Env::default().default_filter_or("debug"))
+        .target(Target::Stdout)
+        .format_timestamp(Some(TimestampPrecision::Seconds))
+        .init();
+
     // Create a channel between communication thread and main event loop:
     let (tx_msg, rx_msg) = mpsc::channel(1000);
 
@@ -43,6 +49,7 @@ fn main() {
         })
         .unwrap();
     application.run(&args().collect::<Vec<_>>());
+    log::debug!("GUI has stopped");
     if tx_stop.send(()).is_ok() {
         let _ = handle.join();
     }

@@ -80,7 +80,10 @@ impl Storage {
         // files cache
         let mut cache_files = cache_home.clone() + "/files";
         if std::fs::create_dir_all(&Path::new(cache_files.as_str())).is_err() {
-            println!("failed creating files cache in {}", cache_files.as_str());
+            log::warn!(
+                "(inner) failed creating files cache in {}",
+                cache_files.as_str()
+            );
             cache_files = cache_home.clone();
         }
         // tune-up RVK tracing
@@ -93,7 +96,7 @@ impl Storage {
         let files = Storage::load_state((cache_home.clone() + CACHE_FILES_NAME).as_str())
             .unwrap_or_else(|| HashMap::new());
         if files.len() > 0 {
-            println!("storage: loaded {} previously cached files", files.len());
+            log::debug!("loaded {} previously cached files", files.len());
         }
         Storage {
             cache_home,
@@ -114,12 +117,6 @@ impl Storage {
             };
             if let Ok(json) = serde_json::to_string(&copy) {
                 let name = self.get_cache_files_name();
-
-                // sync version of saving
-                //let path = Path::new(&name);
-                //write(&path, json.as_bytes()).map_err(|_| StorageError::CreateFile(name))
-
-                // async version of saving
                 let mut file = TokioFile::create(&name)
                     .await
                     .map_err(|_| StorageError::CreateFile(name))?;
@@ -133,8 +130,6 @@ impl Storage {
             } else {
                 Err(StorageError::JsonSerialize)
             }
-            // } else {
-            //     Err(StorageError::FileCacheDictionary)
         }
     }
 
@@ -222,12 +217,12 @@ impl Storage {
                         self.is_files_dirty.store(true, Ordering::SeqCst);
                         s
                     } else {
-                        println!("unrecoverable inner error: cannot access files cache");
+                        log::error!("(inner) cannot access files cache");
                         String::new()
                     }
                 })
                 .map_err(|e| {
-                    println!("download error: {}", e);
+                    log::warn!("download error: {}", e);
                     StorageError::DownloadFile(uri.to_string())
                 })
         }

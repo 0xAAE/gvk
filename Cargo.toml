@@ -17,6 +17,7 @@ chrono = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 futures = "0.3"
-bytes = "1.0"
+log = "0.4"
+env_logger = "0.8"
 # rvk = "0.19"
 rvk = { git = "https://github.com/0xAAE/rvk.git", branch = "research", features = ["trace_response"] }

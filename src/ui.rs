@@ -136,18 +136,16 @@ fn build_auth_view(ui_builder: &Builder, tx_response: AuthResponseSender) -> Web
     let tx_holder = RefCell::new(Some(tx_response));
     webview.connect_load_changed(
         clone!(@strong webview, @strong ui_builder => move |view, evt| {
-            //todo: logging
-            println!("{}: {}", evt, view.get_uri().unwrap());
+            log::debug!("{} {}", evt, view.get_uri().unwrap());
             if evt == LoadEvent::Finished {
                 if let Some(uri) = view.get_uri() {
                     if AccessTokenProvider::is_auth_succeeded_uri(uri.as_str()) {
                         // parse auth response
                         if let Ok(auth) = uri.as_str().parse::<AuthResponse>() {
-                            //todo: logging
-                            println!("Authentication is successful: {}", auth);
+                            log::debug!("authentication is successful: {}", auth);
                             let tx_response = tx_holder.borrow_mut().take().unwrap();
                             if let Err(e) = tx_response.send(auth) {
-                                println!("Failed sending auth_response: {}", e);
+                                log::error!("failed sending auth_response: {}", e);
                             }
                             // remove child to prevemt from using it more than once!
                             let parent: ScrolledWindow = ui_builder

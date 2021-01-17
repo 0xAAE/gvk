@@ -28,7 +28,7 @@ impl User {
                 }
             }
             Err(e) => {
-                println!("Failed query user info: {}", e);
+                log::error!("failed query user info: {}", e);
                 None
             }
         }

@@ -64,7 +64,7 @@ pub fn run_with_own_runtime(
                 if let Ok(_) = tx.send(Message::Auth(tx_response)).await {
                     if let Ok(a) = rx_response.await {
                         if let Err(e) = storage.save_auth_async(&a).await {
-                            println!("Failed to store auth data: {}", e);
+                            log::warn!("failed to store auth data: {}", e);
                         }
                         // create VK client
                         let vk_api = APIClient::new(a.get_access_token());
@@ -74,29 +74,29 @@ pub fn run_with_own_runtime(
                 }
             }
             if auth.is_none() {
-                println!("Authentication is not available, cannot continue");
+                log::error!("authentication is not available");
                 return;
             }
             if account.is_none() {
-                println!("Authentication succeded but account is unreachable, cannot continue");
+                log::error!("authentication succeded but account is unreachable");
                 return;
             }
             let auth = auth.unwrap();
             let account = account.unwrap();
-            println!("Authentication: {}", auth);
-            println!("Account: {}", account);
+            log::debug!("authentication: {}", auth);
+            log::info!("account: {}", account);
             // create VK client
             let mut vk_api = APIClient::new(auth.get_access_token());
             // request own user info
             let user = User::query_async(&vk_api, auth.get_user_id()).await;
             if user.is_none() {
-                println!("Failed to get user info, cannot continue");
+                log::error!("failed to get user info");
                 return;
             }
             let user = user.unwrap();
-            println!("User: {}", user);
+            log::debug!("user is {}", user);
             let view_model = user.get_view_model(&storage).await;
-            println!("User view: {}", &view_model);
+            log::debug!("user view is {}", &view_model);
             let _ = tx.send(Message::OwnInfo(view_model)).await;
 
             let mut news = NewsProvider::new(storage.clone());
@@ -104,23 +104,21 @@ pub fn run_with_own_runtime(
                 // periodically query news
                 if let Some(news_feed) = news.next_update(&mut vk_api).await {
                     if let Some(items) = &news_feed.items {
-                        println!("got {} news items", items.len());
+                        log::debug!("got {} news items", items.len());
                     }
                     match tx.try_send(Message::News(NewsUpdate(news_feed))) {
                         Ok(_) => {}
                         Err(TrySendError::Full(_)) => {
-                            //todo: logging
-                            println!("Data is produced too fast for GUI");
+                            log::warn!("data is being produced too fast for GUI");
                         }
                         Err(TrySendError::Closed(_)) => {
-                            //todo: logging
-                            println!("GUI stopped, stopping thread.");
+                            log::info!("GUI has stopped, stopping also");
                             break;
                         }
                     }
                 }
                 if let Err(e) = storage.save_state_async().await {
-                    println!("vk_provider: saving storage state failed: {}", e);
+                    log::warn!("saving storage state failed: {}", e);
                 }
                 sleep(Duration::from_millis(60_000)).await;
             }
@@ -128,8 +126,8 @@ pub fn run_with_own_runtime(
 
         // wait on two futures: the stop signal and the main task (worker)
         tokio::select! {
-            _ = rx_stop => println!("vk_provider: get command stop, exitting"),
-            _ = worker => println!("vk_provider has stopped itself"),
+            _ = rx_stop => log::debug!("get command stop, exitting"),
+            _ = worker => log::debug!("has stopped itself"),
         }
     });
 }

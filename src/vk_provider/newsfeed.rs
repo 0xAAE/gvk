@@ -47,7 +47,7 @@ impl NewsProvider {
                 upd
             })
             .or_else(|| {
-                println!(
+                log::warn!(
                     "drop news from {} to {} due to error",
                     format!(
                         "{}",
@@ -109,13 +109,13 @@ impl NewsProvider {
             Err(e) => {
                 match e {
                     rvk::error::Error::API(e) => {
-                        println!(
-                            "Failed requesting news update: {}, extra {:?}",
+                        log::error!(
+                            "failed requesting news update: {}, extra {:?}",
                             e.msg(),
                             e.extra()
                         );
                     }
-                    _ => println!("Failed requesting news update: {}", e),
+                    _ => log::error!("failed requesting news update: {}", e),
                 }
                 None
             }

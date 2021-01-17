@@ -11,7 +11,7 @@ impl AccountProvider {
         match methods::account::get_profile_info::<objects::account::Account>(api, params).await {
             Ok(a) => Some(Account(a)),
             Err(e) => {
-                println!("Failed query account info: {}", e);
+                log::error!("failed query account info: {}", e);
                 None
             }
         }
