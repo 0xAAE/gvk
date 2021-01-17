@@ -1165,7 +1165,7 @@ dependencies = [
 [[package]]
 name = "rvk"
 version = "0.19.0"
-source = "git+https://github.com/0xAAE/rvk.git?branch=research#0cd311a0d9c3169e0adc6d0704f1a1c8f4290ee1"
+source = "git+https://github.com/0xAAE/rvk.git?branch=research#0d5e665d4a211d55e00cca879cac9764c9e8a4ee"
 dependencies = [
  "chrono",
  "heck",

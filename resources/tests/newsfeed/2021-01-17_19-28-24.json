@@ -1,0 +1,482 @@
+{
+    "groups": [
+        {
+            "id": 40316705,
+            "is_admin": 0,
+            "is_advertiser": 0,
+            "is_closed": 0,
+            "is_member": 1,
+            "name": "Новости RT на русском",
+            "photo_100": "https://sun1-22.userapi.com/impg/2zskdJAQXEVnnBHUIUu65HZRi8U8dyvQhoNGDw/BbAPwJIq3Z8.jpg?size=100x0&quality=96&crop=52,19,948,948&sign=61c0f285c04dffe516aab2e4d98d9d6b&c_uniq_tag=tSwPEYQfFBnVYnUMJPxKTnoL-r1AJ5t6dVP5cWXhhx0&ava=1",
+            "photo_200": "https://sun1-22.userapi.com/impg/2zskdJAQXEVnnBHUIUu65HZRi8U8dyvQhoNGDw/BbAPwJIq3Z8.jpg?size=200x0&quality=96&crop=52,19,948,948&sign=ff643ab7f09f29dfac0fb32e177cf495&c_uniq_tag=xpVQqcuFSvQc76AqO9ObBPPr5qyHfV5sCEMD2fjU1fg&ava=1",
+            "photo_50": "https://sun1-22.userapi.com/impg/2zskdJAQXEVnnBHUIUu65HZRi8U8dyvQhoNGDw/BbAPwJIq3Z8.jpg?size=50x0&quality=96&crop=52,19,948,948&sign=bdaa0143ab8ac02fdcc0931865695f14&c_uniq_tag=LsNJMHzcWZ6Utczh9tdhR9TUBGUuaPpoDtumO7dR5A0&ava=1",
+            "screen_name": "rt_russian",
+            "type": "page"
+        }
+    ],
+    "items": [
+        {
+            "date": 1610900891,
+            "friends": {
+                "count": 11,
+                "items": [
+                    {
+                        "user_id": 2245103
+                    },
+                    {
+                        "user_id": 503730788
+                    },
+                    {
+                        "user_id": 184946538
+                    },
+                    {
+                        "user_id": 620887528
+                    },
+                    {
+                        "user_id": 413163759
+                    },
+                    {
+                        "user_id": 285911205
+                    },
+                    {
+                        "user_id": 476645245
+                    },
+                    {
+                        "user_id": 590872047
+                    },
+                    {
+                        "user_id": 15729707
+                    },
+                    {
+                        "user_id": 231151622
+                    }
+                ]
+            },
+            "source_id": 18434609,
+            "type": "friend"
+        },
+        {
+            "date": 1610900888,
+            "friends": {
+                "count": 1,
+                "items": [
+                    {
+                        "user_id": 18434609
+                    }
+                ]
+            },
+            "source_id": 184946538,
+            "type": "friend"
+        },
+        {
+            "attachments": [
+                {
+                    "photo": {
+                        "access_key": "c47d5ffb6a32c7dd78",
+                        "album_id": -7,
+                        "date": 1610900563,
+                        "has_tags": false,
+                        "id": 459539917,
+                        "owner_id": -40316705,
+                        "post_id": 38231954,
+                        "sizes": [
+                            {
+                                "height": 73,
+                                "type": "m",
+                                "url": "https://sun1-94.userapi.com/impg/naFLWP5nfeJmgDEMY2KB4OGma7egzxYaMKtNlQ/TAAWmwvy5D4.jpg?size=130x73&quality=96&sign=1dcc73d0cf3e7ecf5da018ea0a5d3bc4&c_uniq_tag=siUXFZZMtHG8wLghDEGnoFoel7nLJozUEkImnrvOWB4&type=album",
+                                "width": 130
+                            },
+                            {
+                                "height": 87,
+                                "type": "o",
+                                "url": "https://sun1-94.userapi.com/impg/naFLWP5nfeJmgDEMY2KB4OGma7egzxYaMKtNlQ/TAAWmwvy5D4.jpg?size=130x87&quality=96&crop=62,0,650,435&sign=41e80232d5660cc56c6ff07df18ee2e2&c_uniq_tag=fCvqLADCU0XiNfd441IW9GTCJ3pqzEc5X55zwlKkyAk&type=album",
+                                "width": 130
+                            },
+                            {
+                                "height": 133,
+                                "type": "p",
+                                "url": "https://sun1-94.userapi.com/impg/naFLWP5nfeJmgDEMY2KB4OGma7egzxYaMKtNlQ/TAAWmwvy5D4.jpg?size=200x133&quality=96&crop=60,0,654,435&sign=a1f84e2a608e1e3bd70497cf03150226&c_uniq_tag=0DppmAzdXNr0Vz8RkNCeHD3_TWkWaix04kI3q-sJ0Jk&type=album",
+                                "width": 200
+                            },
+                            {
+                                "height": 213,
+                                "type": "q",
+                                "url": "https://sun1-94.userapi.com/impg/naFLWP5nfeJmgDEMY2KB4OGma7egzxYaMKtNlQ/TAAWmwvy5D4.jpg?size=320x213&quality=96&crop=60,0,654,435&sign=5e9352daf25d45abcb5802863bf9d6f7&c_uniq_tag=BxN1lsnAy6pC_DMXHt_4FnqBRkdX5Mfgo0ViU502VZw&type=album",
+                                "width": 320
+                            },
+                            {
+                                "height": 340,
+                                "type": "r",
+                                "url": "https://sun1-94.userapi.com/impg/naFLWP5nfeJmgDEMY2KB4OGma7egzxYaMKtNlQ/TAAWmwvy5D4.jpg?size=510x340&quality=96&crop=60,0,653,435&sign=b6153fa484b49b95844403e8bc4ac997&c_uniq_tag=Elob6jNw1fL87E9Re_r2PSxL0EMfpqHor1IWYRu2ceU&type=album",
+                                "width": 510
+                            },
+                            {
+                                "height": 42,
+                                "type": "s",
+                                "url": "https://sun1-94.userapi.com/impg/naFLWP5nfeJmgDEMY2KB4OGma7egzxYaMKtNlQ/TAAWmwvy5D4.jpg?size=75x42&quality=96&sign=157d24e212720aa529b3170ca68b32d2&c_uniq_tag=P6LVIpmq1qtShAQgFRsaxRAzVHbFpzWSTyyKMgWvAwo&type=album",
+                                "width": 75
+                            },
+                            {
+                                "height": 339,
+                                "type": "x",
+                                "url": "https://sun1-94.userapi.com/impg/naFLWP5nfeJmgDEMY2KB4OGma7egzxYaMKtNlQ/TAAWmwvy5D4.jpg?size=604x339&quality=96&sign=fac43526fedd98a655036634130f0047&c_uniq_tag=3S7o-i-zE-QE-tG3tC0r2KLsuT1jgSGivit06StQRFo&type=album",
+                                "width": 604
+                            },
+                            {
+                                "height": 435,
+                                "type": "y",
+                                "url": "https://sun1-94.userapi.com/impg/naFLWP5nfeJmgDEMY2KB4OGma7egzxYaMKtNlQ/TAAWmwvy5D4.jpg?size=774x435&quality=96&proxy=1&sign=844028ae214ddce116ac053ff75e1617&c_uniq_tag=pJEJFYI5w87qGXkHx8KmjoeWdgGTYgBBNCtIbcMmsss&type=album",
+                                "width": 774
+                            }
+                        ],
+                        "text": "",
+                        "user_id": 100
+                    },
+                    "type": "photo"
+                }
+            ],
+            "can_doubt_category": false,
+            "can_set_category": false,
+            "comments": {
+                "can_post": 1,
+                "count": 0,
+                "groups_can_post": true
+            },
+            "date": 1610900880,
+            "is_favorite": false,
+            "likes": {
+                "can_like": 1,
+                "can_publish": 1,
+                "count": 0,
+                "user_likes": 0
+            },
+            "marked_as_ads": 0,
+            "post_id": 38231954,
+            "post_source": {
+                "type": "vk"
+            },
+            "post_type": "post",
+            "reposts": {
+                "count": 0,
+                "user_reposted": 0
+            },
+            "source_id": -40316705,
+            "text": "SZ: Берлин отреагировал на выход России из Договора по открытому небу \n \n➡Подробнее: https://russian.rt.com/inotv/2021-01-16/SZ-razocharovani-no-ne-udivleni",
+            "type": "post",
+            "views": {
+                "count": 140
+            }
+        },
+        {
+            "date": 1610900880,
+            "photos": {
+                "count": 1,
+                "items": [
+                    {
+                        "access_key": "c47d5ffb6a32c7dd78",
+                        "album_id": -7,
+                        "can_comment": 1,
+                        "can_repost": 1,
+                        "comments": {
+                            "count": 0
+                        },
+                        "date": 1610900563,
+                        "has_tags": false,
+                        "id": 459539917,
+                        "likes": {
+                            "count": 0,
+                            "user_likes": 0
+                        },
+                        "owner_id": -40316705,
+                        "post_id": 38231954,
+                        "reposts": {
+                            "count": 0,
+                            "user_reposted": 0
+                        },
+                        "sizes": [
+                            {
+                                "height": 73,
+                                "type": "m",
+                                "url": "https://sun1-94.userapi.com/impg/naFLWP5nfeJmgDEMY2KB4OGma7egzxYaMKtNlQ/TAAWmwvy5D4.jpg?size=130x73&quality=96&sign=1dcc73d0cf3e7ecf5da018ea0a5d3bc4&c_uniq_tag=siUXFZZMtHG8wLghDEGnoFoel7nLJozUEkImnrvOWB4&type=album",
+                                "width": 130
+                            },
+                            {
+                                "height": 87,
+                                "type": "o",
+                                "url": "https://sun1-94.userapi.com/impg/naFLWP5nfeJmgDEMY2KB4OGma7egzxYaMKtNlQ/TAAWmwvy5D4.jpg?size=130x87&quality=96&crop=62,0,650,435&sign=41e80232d5660cc56c6ff07df18ee2e2&c_uniq_tag=fCvqLADCU0XiNfd441IW9GTCJ3pqzEc5X55zwlKkyAk&type=album",
+                                "width": 130
+                            },
+                            {
+                                "height": 133,
+                                "type": "p",
+                                "url": "https://sun1-94.userapi.com/impg/naFLWP5nfeJmgDEMY2KB4OGma7egzxYaMKtNlQ/TAAWmwvy5D4.jpg?size=200x133&quality=96&crop=60,0,654,435&sign=a1f84e2a608e1e3bd70497cf03150226&c_uniq_tag=0DppmAzdXNr0Vz8RkNCeHD3_TWkWaix04kI3q-sJ0Jk&type=album",
+                                "width": 200
+                            },
+                            {
+                                "height": 213,
+                                "type": "q",
+                                "url": "https://sun1-94.userapi.com/impg/naFLWP5nfeJmgDEMY2KB4OGma7egzxYaMKtNlQ/TAAWmwvy5D4.jpg?size=320x213&quality=96&crop=60,0,654,435&sign=5e9352daf25d45abcb5802863bf9d6f7&c_uniq_tag=BxN1lsnAy6pC_DMXHt_4FnqBRkdX5Mfgo0ViU502VZw&type=album",
+                                "width": 320
+                            },
+                            {
+                                "height": 340,
+                                "type": "r",
+                                "url": "https://sun1-94.userapi.com/impg/naFLWP5nfeJmgDEMY2KB4OGma7egzxYaMKtNlQ/TAAWmwvy5D4.jpg?size=510x340&quality=96&crop=60,0,653,435&sign=b6153fa484b49b95844403e8bc4ac997&c_uniq_tag=Elob6jNw1fL87E9Re_r2PSxL0EMfpqHor1IWYRu2ceU&type=album",
+                                "width": 510
+                            },
+                            {
+                                "height": 42,
+                                "type": "s",
+                                "url": "https://sun1-94.userapi.com/impg/naFLWP5nfeJmgDEMY2KB4OGma7egzxYaMKtNlQ/TAAWmwvy5D4.jpg?size=75x42&quality=96&sign=157d24e212720aa529b3170ca68b32d2&c_uniq_tag=P6LVIpmq1qtShAQgFRsaxRAzVHbFpzWSTyyKMgWvAwo&type=album",
+                                "width": 75
+                            },
+                            {
+                                "height": 339,
+                                "type": "x",
+                                "url": "https://sun1-94.userapi.com/impg/naFLWP5nfeJmgDEMY2KB4OGma7egzxYaMKtNlQ/TAAWmwvy5D4.jpg?size=604x339&quality=96&sign=fac43526fedd98a655036634130f0047&c_uniq_tag=3S7o-i-zE-QE-tG3tC0r2KLsuT1jgSGivit06StQRFo&type=album",
+                                "width": 604
+                            },
+                            {
+                                "height": 435,
+                                "type": "y",
+                                "url": "https://sun1-94.userapi.com/impg/naFLWP5nfeJmgDEMY2KB4OGma7egzxYaMKtNlQ/TAAWmwvy5D4.jpg?size=774x435&quality=96&proxy=1&sign=844028ae214ddce116ac053ff75e1617&c_uniq_tag=pJEJFYI5w87qGXkHx8KmjoeWdgGTYgBBNCtIbcMmsss&type=album",
+                                "width": 774
+                            }
+                        ],
+                        "text": "SZ: Берлин отреагировал на выход России из Договора по открытому небу \n \n➡Подробнее: https://russian.rt.com/inotv/2021-01-16/SZ-razocharovani-no-ne-udivleni",
+                        "user_id": 100
+                    }
+                ]
+            },
+            "post_id": 1610830800,
+            "source_id": -40316705,
+            "type": "wall_photo"
+        }
+    ],
+    "profiles": [
+        {
+            "can_access_closed": true,
+            "first_name": "Администрация ВКонтакте",
+            "id": 100,
+            "is_closed": false,
+            "last_name": "",
+            "online": 0,
+            "online_info": {
+                "is_mobile": false,
+                "is_online": false,
+                "visible": true
+            },
+            "photo_100": "https://sun1-87.userapi.com/impf/c847124/v847124728/335f4/thh2-8S3ZKM.jpg?size=100x0&quality=96&crop=0,0,400,400&sign=f694ade6e8f6e987fba9ad3095832531&c_uniq_tag=fpjpCfIgEGghUm4BvCxY7PoTtLA7GiyWHPPXhrPB9s4&ava=1",
+            "photo_50": "https://sun1-87.userapi.com/impf/c847124/v847124728/335f4/thh2-8S3ZKM.jpg?size=50x0&quality=96&crop=0,0,400,400&sign=5f877a92945c1479e77ab7faf0a0b32b&c_uniq_tag=O_i6I34soS2fHjDnhh_LsYA9SyD6-SD7VXMdJfKbV8k&ava=1",
+            "screen_name": "id100",
+            "sex": 1
+        },
+        {
+            "can_access_closed": true,
+            "first_name": "Сергей",
+            "id": 2245103,
+            "is_closed": false,
+            "last_name": "Васильев",
+            "online": 0,
+            "online_info": {
+                "app_id": 2274003,
+                "is_mobile": true,
+                "is_online": false,
+                "last_seen": 1610899657,
+                "visible": true
+            },
+            "photo_100": "https://sun1-90.userapi.com/impf/c626222/v626222103/57a01/Htzeepe5JsE.jpg?size=100x0&quality=96&crop=133,1,653,653&sign=53cf7b068029f2eb57012ea282ee7dbe&c_uniq_tag=-Kfg1xf9T7ORbH6rw3cOQ6A9YiZj4hRZBU2sMlIMWpg&ava=1",
+            "photo_50": "https://sun1-90.userapi.com/impf/c626222/v626222103/57a01/Htzeepe5JsE.jpg?size=50x0&quality=96&crop=133,1,653,653&sign=541788848139d6aa4dd5fc521dc36beb&c_uniq_tag=nlNEGM5G2p1oD66uyZEH7YYBx3MwlcE5Ec9lkjl67Uc&ava=1",
+            "screen_name": "xavas007",
+            "sex": 2
+        },
+        {
+            "can_access_closed": true,
+            "first_name": "Пётр",
+            "id": 15729707,
+            "is_closed": false,
+            "last_name": "Куприянов",
+            "online": 0,
+            "online_info": {
+                "app_id": 2274003,
+                "is_mobile": true,
+                "is_online": false,
+                "last_seen": 1610890612,
+                "visible": true
+            },
+            "photo_100": "https://sun1-19.userapi.com/impf/skyCJbiB2AUb4joWJS868Vd_UQeZu8R4-_pZXw/lCa67A4lj78.jpg?size=100x0&quality=96&crop=178,0,1709,1709&sign=16b9d64e5d9df163357a127288052bc0&c_uniq_tag=zFpoH3WbFm9rUDbZq54nU4n_xjFYT5jG6DT8k9JC1qA&ava=1",
+            "photo_50": "https://sun1-19.userapi.com/impf/skyCJbiB2AUb4joWJS868Vd_UQeZu8R4-_pZXw/lCa67A4lj78.jpg?size=50x0&quality=96&crop=178,0,1709,1709&sign=2dcc7a7f9b28150f0073b8f70f124fc3&c_uniq_tag=D2j3po3pKRy02IVImFSFPAb7fyqOUKMLIlEZm-bQfoU&ava=1",
+            "screen_name": "id15729707",
+            "sex": 2
+        },
+        {
+            "can_access_closed": true,
+            "first_name": "Владислав",
+            "id": 18434609,
+            "is_closed": false,
+            "last_name": "Бахристов",
+            "online": 1,
+            "online_info": {
+                "is_mobile": false,
+                "is_online": true,
+                "last_seen": 1610900895,
+                "visible": true
+            },
+            "photo_100": "https://sun1-26.userapi.com/impf/c625625/v625625609/259ef/wCbZWcVrBpA.jpg?size=100x0&quality=96&crop=48,0,603,603&sign=a83a4c6ecc833e7c7d6e89bd6d152724&c_uniq_tag=7A5sagQf196lRHfSPfiBWP5XcSpa9B12R8AQjqtBf9E&ava=1",
+            "photo_50": "https://sun1-26.userapi.com/impf/c625625/v625625609/259ef/wCbZWcVrBpA.jpg?size=50x0&quality=96&crop=48,0,603,603&sign=56e71c9f894401e2d7cdcb080b8abb7c&c_uniq_tag=0qA8Hko3PW6p4i7KXrvBdfJCVVkoxHlkX1yv8fux9Eo&ava=1",
+            "screen_name": "lllive_in_the_forest",
+            "sex": 2
+        },
+        {
+            "can_access_closed": true,
+            "first_name": "Александр",
+            "id": 184946538,
+            "is_closed": false,
+            "last_name": "Авраменко",
+            "online": 0,
+            "online_info": {
+                "is_mobile": true,
+                "is_online": false,
+                "last_seen": 1610898972,
+                "visible": true
+            },
+            "photo_100": "https://sun1-87.userapi.com/impf/c840133/v840133753/20f5c/F37QDOEm4Nk.jpg?size=100x0&quality=96&crop=0,48,417,417&sign=dde8509bb71067bcbeead2f943d75e8f&c_uniq_tag=MtjpkFFpNjtgfCYAYJphp5lc9BpprsLLuyMU7vf03uo&ava=1",
+            "photo_50": "https://sun1-87.userapi.com/impf/c840133/v840133753/20f5c/F37QDOEm4Nk.jpg?size=50x0&quality=96&crop=0,48,417,417&sign=e8cc363e0d847fb565e9f2b8cdf1936d&c_uniq_tag=6v8DTYK2Of5NA3At10ucdm309Oi7OkgY37fPoydIRDM&ava=1",
+            "screen_name": "id184946538",
+            "sex": 2
+        },
+        {
+            "can_access_closed": true,
+            "first_name": "Рон",
+            "id": 231151622,
+            "is_closed": false,
+            "last_name": "Байровский",
+            "online": 0,
+            "online_info": {
+                "is_mobile": false,
+                "is_online": false,
+                "last_seen": 1610860789,
+                "visible": true
+            },
+            "photo_100": "https://sun1-27.userapi.com/impf/c849132/v849132840/73846/JxOYq8M1ZKs.jpg?size=100x0&quality=96&crop=33,33,934,934&sign=50de51f72ae0f5c7e8d19abfe31d6a17&c_uniq_tag=TXoNWOWp0NUJxHr5Y-jDPx0CnT-q3gLIAN4VwznzO1E&ava=1",
+            "photo_50": "https://sun1-27.userapi.com/impf/c849132/v849132840/73846/JxOYq8M1ZKs.jpg?size=50x0&quality=96&crop=33,33,934,934&sign=d31f351c5c80a873225d6aaba8d2a642&c_uniq_tag=JTnAq3U2EYLmy2zk6RS7fv4E_afBs2ueAzZJRU5Nvhg&ava=1",
+            "screen_name": "capocapone",
+            "sex": 2
+        },
+        {
+            "can_access_closed": true,
+            "first_name": "Влад",
+            "id": 285911205,
+            "is_closed": false,
+            "last_name": "Истомин",
+            "online": 0,
+            "online_info": {
+                "app_id": 2274003,
+                "is_mobile": true,
+                "is_online": false,
+                "last_seen": 1610896694,
+                "visible": true
+            },
+            "photo_100": "https://sun1-28.userapi.com/impf/c857728/v857728546/80860/hV91dgdWBkI.jpg?size=100x0&quality=96&crop=2,365,1197,1197&sign=e42a4790b041c39634a86f90d681e190&c_uniq_tag=aeemay810OUDmTjrpSQsbL82ReXf7nczcgT2XsAaiK8&ava=1",
+            "photo_50": "https://sun1-28.userapi.com/impf/c857728/v857728546/80860/hV91dgdWBkI.jpg?size=50x0&quality=96&crop=2,365,1197,1197&sign=af682db6567325958cccfc2552dcb170&c_uniq_tag=KoRK1u1CtmQ3nh_CfD415A7dFL9eX0EzEYB5V6pzHj0&ava=1",
+            "screen_name": "z_e_r_o13",
+            "sex": 2
+        },
+        {
+            "can_access_closed": true,
+            "first_name": "Дмитрий",
+            "id": 413163759,
+            "is_closed": false,
+            "last_name": "Андреев",
+            "online": 1,
+            "online_app": 2274003,
+            "online_info": {
+                "app_id": 2274003,
+                "is_mobile": true,
+                "is_online": true,
+                "last_seen": 1610900890,
+                "visible": true
+            },
+            "online_mobile": 1,
+            "photo_100": "https://sun1-17.userapi.com/impg/4hGfN818mE1HdhBFCcaa57SW6M5i59du4-zNIQ/XHN7wKhOveY.jpg?size=100x0&quality=96&crop=120,120,960,960&sign=53af7b0a2766caec0f061b0db9f2423e&c_uniq_tag=Q4CNLxC1aZO1o_BwEiuNi4nHkzbfvKMDxOEsZzPpcHk&ava=1",
+            "photo_50": "https://sun1-17.userapi.com/impg/4hGfN818mE1HdhBFCcaa57SW6M5i59du4-zNIQ/XHN7wKhOveY.jpg?size=50x0&quality=96&crop=120,120,960,960&sign=ef3ab804e1800236f03c6fba747a1b44&c_uniq_tag=iW2RuLvVk9WLleGDrx1NWlTh43IIn-L0_k--EzS6Bh0&ava=1",
+            "screen_name": "id413163759",
+            "sex": 2
+        },
+        {
+            "can_access_closed": true,
+            "first_name": "Кирилл",
+            "id": 476645245,
+            "is_closed": false,
+            "last_name": "Крутиков",
+            "online": 1,
+            "online_app": 2274003,
+            "online_info": {
+                "app_id": 2274003,
+                "is_mobile": true,
+                "is_online": true,
+                "last_seen": 1610900815,
+                "visible": true
+            },
+            "online_mobile": 1,
+            "photo_100": "https://sun1-98.userapi.com/impg/dx2GiPZ2rth6QBDfH7JiMOALOmzDdJSZ0XAwcg/fsgHUpYvjBk.jpg?size=100x0&quality=96&crop=322,2,1913,1913&sign=6b82830e8964cbb7096594e1c5d3053a&c_uniq_tag=Ip4dI2iSVI32YJZC0NcquglTR4MiVlra1FwOoV7-qKw&ava=1",
+            "photo_50": "https://sun1-98.userapi.com/impg/dx2GiPZ2rth6QBDfH7JiMOALOmzDdJSZ0XAwcg/fsgHUpYvjBk.jpg?size=50x0&quality=96&crop=322,2,1913,1913&sign=f9f993e1e612f57638930323e742b766&c_uniq_tag=s0Y_1v_h9wZuVvLgr46BMJjrG-7Pzbmy0HRiIY4Y7L4&ava=1",
+            "screen_name": "id476645245",
+            "sex": 2
+        },
+        {
+            "can_access_closed": true,
+            "first_name": "Алексей",
+            "id": 503730788,
+            "is_closed": false,
+            "last_name": "Мурачёв",
+            "online": 1,
+            "online_info": {
+                "is_mobile": false,
+                "is_online": true,
+                "last_seen": 1610900901,
+                "visible": true
+            },
+            "photo_100": "https://sun1-25.userapi.com/impf/c851120/v851120975/16c452/iYhsEfT-Fec.jpg?size=100x0&quality=96&crop=2,35,712,712&sign=8552b2c8448d5e1e3bb9652c5ec0f581&c_uniq_tag=hm73UcF8eBe9Mybh7EzDaolZRq80WWx4qrO8kgoLQ2I&ava=1",
+            "photo_50": "https://sun1-25.userapi.com/impf/c851120/v851120975/16c452/iYhsEfT-Fec.jpg?size=50x0&quality=96&crop=2,35,712,712&sign=ea9e1ab52dab151e02e1d48c537b0c59&c_uniq_tag=wbE5znP9ADWvLTDeYCCJL8o6xKvqvrwTX3_wLEgamys&ava=1",
+            "screen_name": "id503730788",
+            "sex": 2
+        },
+        {
+            "can_access_closed": true,
+            "first_name": "Андрей",
+            "id": 590872047,
+            "is_closed": false,
+            "last_name": "Малков",
+            "online": 1,
+            "online_info": {
+                "is_mobile": false,
+                "is_online": true,
+                "last_seen": 1610900889,
+                "visible": true
+            },
+            "photo_100": "https://sun1-94.userapi.com/impg/ZtM83An-9NVKM3KQYK1lWF8941Drv8pmOo0Arg/ztNBh_gu6y4.jpg?size=100x0&quality=96&crop=199,297,846,846&sign=8c54746432acb36511dfebbc3d759e27&c_uniq_tag=zN7DqvWxGOywSWMHrn0WYtFZiOPhgWFGkH0_gMYg1kc&ava=1",
+            "photo_50": "https://sun1-94.userapi.com/impg/ZtM83An-9NVKM3KQYK1lWF8941Drv8pmOo0Arg/ztNBh_gu6y4.jpg?size=50x0&quality=96&crop=199,297,846,846&sign=9c0f832574f4d673bc7654f893421402&c_uniq_tag=Z5qAekhCo97N4Kak2aqhSgNE6cO_PjWOLzKmXrzFXTk&ava=1",
+            "screen_name": "trokhglavyy_yenot",
+            "sex": 2
+        },
+        {
+            "can_access_closed": false,
+            "first_name": "Виктор",
+            "id": 620887528,
+            "is_closed": true,
+            "last_name": "Иванов",
+            "online": 0,
+            "online_info": {
+                "is_mobile": true,
+                "is_online": false,
+                "last_seen": 1610900023,
+                "visible": true
+            },
+            "photo_100": "https://sun1-21.userapi.com/impg/e3e8TCLOlqApGXevvrE_VV5Dq1liX55uIHUycg/-ITRdIawst4.jpg?size=100x0&quality=96&crop=486,0,1906,1906&sign=14fea49ee0d682ae9fd2eb14250bce22&c_uniq_tag=iJyPiIo6UO9L3R06HsyjzPz9PZlIOU9lFfWXQr6GAx8&ava=1",
+            "photo_50": "https://sun1-21.userapi.com/impg/e3e8TCLOlqApGXevvrE_VV5Dq1liX55uIHUycg/-ITRdIawst4.jpg?size=50x0&quality=96&crop=486,0,1906,1906&sign=d32a36710074ef39b9f2b968f602dec1&c_uniq_tag=5au5GZ1fT-vsTb3UnkS0P00sO3L9wogsLw4T6gRcn_w&ava=1",
+            "screen_name": "id620887528",
+            "sex": 2
+        }
+    ]
+}
