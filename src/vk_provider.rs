@@ -99,14 +99,15 @@ pub fn run_with_own_runtime(
             log::debug!("user view is {}", &view_model);
             let _ = tx.send(Message::OwnInfo(view_model)).await;
 
-            let mut news = NewsProvider::new(storage.clone());
+            let mut news = NewsProvider::new();
             loop {
                 // periodically query news
                 if let Some(news_feed) = news.next_update(&mut vk_api).await {
                     if let Some(items) = &news_feed.items {
                         log::debug!("got {} news items", items.len());
                     }
-                    match tx.try_send(Message::News(NewsUpdate(news_feed))) {
+                    let update = NewsUpdate::new_async(&news_feed, &storage).await;
+                    match tx.try_send(Message::News(update)) {
                         Ok(_) => {}
                         Err(TrySendError::Full(_)) => {
                             log::warn!("data is being produced too fast for GUI");

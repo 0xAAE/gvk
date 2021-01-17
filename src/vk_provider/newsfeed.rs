@@ -1,4 +1,3 @@
-use crate::storage::SharedStorage;
 use crate::utils::local_from_timestamp;
 use chrono::Utc;
 use rvk::{methods::newsfeed, objects::newsfeed::NewsFeed, APIClient, Params};
@@ -8,19 +7,17 @@ const MAX_UPDATE_DELTA_SEC: u64 = 3_600; // 60 minutes
 
 /// <https://vk.com/dev/newsfeed.get>
 pub struct NewsProvider {
-    storage: SharedStorage,
     received_from: u64,
     received_to: u64,
     last_next_from: String,
 }
 
 impl NewsProvider {
-    pub fn new(storage: SharedStorage) -> Self {
+    pub fn new() -> Self {
         // on start get news for the last hour:
         let received_from = Utc::now().timestamp() as u64 - MAX_UPDATE_DELTA_SEC;
         let received_to = received_from; // for the last hour
         NewsProvider {
-            storage,
             received_from,
             received_to,
             last_next_from: String::new(),
@@ -76,36 +73,7 @@ impl NewsProvider {
 
     async fn do_update(&self, api: &mut APIClient, params: Params) -> Option<NewsFeed> {
         match newsfeed::get::<NewsFeed>(api, params).await {
-            Ok(mut upd) => {
-                // replace URLs in photo_50 with downloaded local files or clear them if failed
-                // in profiles and groups
-                if let Some(profiles) = upd.profiles.as_mut() {
-                    for u in profiles {
-                        if u.photo_50.is_some() {
-                            let res = self
-                                .storage
-                                .get_file(u.photo_50.as_ref().unwrap().as_str())
-                                .await;
-                            if let Ok(file) = res {
-                                u.photo_50 = Some(file);
-                            } else {
-                                u.photo_50 = None;
-                            }
-                        }
-                    }
-                }
-                if let Some(groups) = upd.groups.as_mut() {
-                    for g in groups {
-                        let res = self.storage.get_file(g.photo_50.as_str()).await;
-                        if let Ok(file) = res {
-                            g.photo_50 = file;
-                        } else {
-                            g.photo_50 = String::new();
-                        }
-                    }
-                }
-                Some(upd)
-            }
+            Ok(upd) => Some(upd),
             Err(e) => {
                 match e {
                     rvk::error::Error::API(e) => {

@@ -1,15 +1,15 @@
 //! Produces news item model objects from rvk::objects::newsfeed::* implementing all required operations and types:
 //! * NewsItemModel - the result data, also the source for the NewsItemViewModel
-//! * NewsUpdateIterator - iterates over NewsUpdate providing NewsItemModel objects
-//! * NewsUpdate - the wrapper over rvk::objects::newsfeed::NewsFeed, implements IntoIterator for NewsUpdateIterator
-//! So, having the NewsUpdate(rvk::objects::newsfeed::NewsFeed) one can turn it into NewsUpdateIterator which
-//! in its turn produces NewsItemModel objects from underlying rvk::objects::newsfeed::Item objects.
-//! While producing models from siurce items there are some transformations applied:
-//! * all markdown control symbols are "preserved", examples: '&' --> &amp; or '>' --> &gt;
-//! * all URLs are surrounded by <a href=> tag
+//! * NewsUpdate - is constracted from rvk::objects::newsfeed::NewsFeed and performs any desired transformations on data:
+//!       * all markdown control symbols are "preserved", examples: '&' --> &amp; or '>' --> &gt;
+//!       * all URLs are surrounded by <a href=> tag
+//! NewsUpdate implements trait IntoIterator to allow transparent iterating over NewsItemModel objects
+//! * NewsUpdate.into_iter() - iterates over NewsUpdate providing NewsItemModel objects
+//! So, having the NewsUpdate::new(&rvk::objects::newsfeed::NewsFeed) one can turn it into iterator byy into_iter() which
+//! in its turn produces NewsItemModel objects from underlying collection.
+use crate::storage::Storage;
 use crate::utils::local_from_timestamp;
-use rvk::objects::newsfeed::{Item as NewsItem, NewsFeed};
-use rvk::objects::{group, user};
+use rvk::objects::newsfeed::NewsFeed;
 use std::iter::{IntoIterator, Iterator};
 
 pub struct NewsItemModel {
@@ -20,79 +20,88 @@ pub struct NewsItemModel {
     pub content: String,
 }
 
-pub struct NewsUpdate(pub NewsFeed);
+pub struct NewsUpdate {
+    items: Vec<NewsItemModel>,
+}
+
+impl NewsUpdate {
+    // Perform all desired transformations while constructing NewsItemModel collecton
+    pub async fn new_async(newsfeed: &NewsFeed, storage: &Storage) -> Self {
+        // prepare users
+        let users_stub = Vec::new();
+        let users = if let Some(ref src_users) = newsfeed.profiles {
+            src_users
+        } else {
+            &users_stub
+        };
+        // prepare groups
+        let groups_stub = Vec::new();
+        let groups = if let Some(ref src_groups) = newsfeed.groups {
+            src_groups
+        } else {
+            &groups_stub
+        };
+        // construct news items
+        let items = if let Some(ref src_items) = newsfeed.items {
+            let mut items = Vec::with_capacity(src_items.len());
+            for src in src_items {
+                // author & avatar
+                let mut avatar = String::new(); // empty if failed finding
+                let author = if src.source_id > 0 {
+                    // author is user
+                    if let Some(user) = users.iter().find(|u| u.id == src.source_id) {
+                        if let Ok(filename) = storage
+                            .get_file(user.photo_50.as_ref().unwrap().as_str())
+                            .await
+                        {
+                            avatar = filename;
+                        }
+                        user.last_name.clone() + " " + user.last_name.as_str()
+                    } else {
+                        String::new()
+                    }
+                } else {
+                    // source is group, source_id is *negative* as defined in VK.com API doc
+                    // see https://vk.com/dev/newsfeed.get description of source_id in description of items
+                    if let Some(grp) = groups.iter().find(|g| g.id == -src.source_id) {
+                        if let Ok(filename) = storage.get_file(grp.photo_50.as_str()).await {
+                            avatar = filename;
+                        }
+                        grp.name.clone()
+                    } else {
+                        String::new()
+                    }
+                };
+                items.push(NewsItemModel {
+                    author,
+                    avatar,
+                    itemtype: src.type_.clone(),
+                    datetime: format!(
+                        "{}",
+                        local_from_timestamp(src.date).format("%d.%m.%Y %H:%M (%a)")
+                    ),
+                    content: if let Some(text) = src.text.as_ref() {
+                        process_text(text)
+                    } else {
+                        String::new()
+                    },
+                })
+            }
+            //
+            items
+        } else {
+            Vec::new()
+        };
+        NewsUpdate { items }
+    }
+}
 
 impl IntoIterator for NewsUpdate {
     type Item = NewsItemModel;
-    type IntoIter = NewsUpdateIterator;
+    type IntoIter = std::vec::IntoIter<NewsItemModel>;
 
     fn into_iter(self) -> Self::IntoIter {
-        NewsUpdateIterator::new(self)
-    }
-}
-
-pub struct NewsUpdateIterator {
-    current: usize,
-    items: Vec<NewsItem>,
-    users: Vec<user::User>,
-    groups: Vec<group::Group>,
-}
-
-impl NewsUpdateIterator {
-    fn new(src: NewsUpdate) -> Self {
-        NewsUpdateIterator {
-            current: 0,
-            items: src.0.items.unwrap_or(Vec::new()),
-            users: src.0.profiles.unwrap_or(Vec::new()),
-            groups: src.0.groups.unwrap_or(Vec::new()),
-        }
-    }
-}
-
-impl Iterator for NewsUpdateIterator {
-    type Item = NewsItemModel;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.current >= self.items.len() {
-            None
-        } else {
-            let item = self.items.get(self.current).unwrap();
-            self.current += 1;
-            let avatar: String;
-            let author = if item.source_id > 0 {
-                // author is user
-                if let Some(user) = self.users.iter().find(|u| u.id == item.source_id) {
-                    avatar = user.photo_50.as_ref().unwrap_or(&String::new()).clone();
-                    Some(user.last_name.clone() + " " + user.last_name.as_str())
-                } else {
-                    avatar = String::new();
-                    None
-                }
-            } else {
-                // source is group
-                if let Some(grp) = self.groups.iter().find(|g| g.id == -item.source_id) {
-                    avatar = grp.photo_50.clone();
-                    Some(grp.name.clone())
-                } else {
-                    avatar = String::new();
-                    None
-                }
-            };
-            Some(NewsItemModel {
-                author: author.unwrap_or(String::new()),
-                avatar,
-                itemtype: item.type_.clone(),
-                datetime: format!(
-                    "{}",
-                    local_from_timestamp(item.date).format("%d.%m.%Y %H:%M (%a)")
-                ),
-                content: if let Some(text) = item.text.as_ref() {
-                    process_text(text)
-                } else {
-                    String::new()
-                },
-            })
-        }
+        self.items.into_iter()
     }
 }
 
