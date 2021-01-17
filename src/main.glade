@@ -416,6 +416,7 @@ Author: 0xAAE
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
                 <property name="shadow-type">in</property>
+                <signal name="edge-reached" handler="news_edge_reached" swapped="no"/>
                 <child>
                   <object class="GtkViewport" id="news_content">
                     <property name="visible">True</property>

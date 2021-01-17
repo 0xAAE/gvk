@@ -1,4 +1,4 @@
-use crate::vk_provider::download;
+use crate::storage::Storage;
 use rvk::{methods::users, objects::user::User as VKUser, APIClient, Params};
 use std::fmt;
 
@@ -28,21 +28,26 @@ impl User {
                 }
             }
             Err(e) => {
-                println!("Failed query user info: {}", e);
+                log::error!("failed query user info: {}", e);
                 None
             }
         }
     }
 
-    pub fn get_view_model(&self) -> UserViewModel {
+    pub async fn get_view_model(&self, storage: &Storage) -> UserViewModel {
+        let uri = if let Some(uri) = self.data.photo_50.as_ref() {
+            uri.clone()
+        } else {
+            String::new()
+        };
+        let image = if let Ok(s) = storage.get_file(uri.as_str()).await {
+            s
+        } else {
+            String::new()
+        };
         UserViewModel {
             name: self.data.first_name.clone() + " " + &self.data.last_name,
-            image: self
-                .data
-                .photo_50
-                .as_ref()
-                .unwrap_or(&String::new())
-                .clone(),
+            image,
             status: self.data.status.as_ref().unwrap_or(&String::new()).clone(),
         }
     }

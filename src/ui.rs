@@ -1,15 +1,16 @@
+use crate::models::NewsUpdate;
 use crate::vk_provider::{AccessTokenProvider, AuthResponse, UserViewModel};
 use gio::prelude::*;
 use gtk::prelude::*;
 use gtk::{ApplicationWindow, Builder, Image, Label, ScrolledWindow, Stack};
 use std::cell::RefCell;
-use tokio::sync::{mpsc::Receiver, oneshot};
+use tokio::sync::{
+    mpsc::{Receiver, Sender},
+    oneshot,
+};
 use webkit2gtk::{LoadEvent, WebContext, WebView, WebViewExt};
 
-mod news_item_row_data;
-pub use news_item_row_data::NewsItem;
-use news_item_row_data::RowData;
-
+use crate::view_models::RowData;
 type AuthResponseSender = oneshot::Sender<AuthResponse>;
 
 /// Communicating from VK provider to UI
@@ -20,12 +21,22 @@ pub enum Message {
     /// Updated own user info received
     OwnInfo(UserViewModel),
     /// New incoming message to display in the user's wall
-    News(NewsItem),
+    News(NewsUpdate),
+    /// Older news to let user scroll back
+    OlderNews(NewsUpdate),
+}
+
+pub enum Request {
+    // Request a portion of news prior the oldest
+    NewsOlder,
+    // request a portion of news after the most recent
+    NewsNext,
 }
 
 type MessageReceiver = Receiver<Message>;
+type RequestSender = Sender<Request>;
 
-pub fn build(application: &gtk::Application, rx: MessageReceiver) {
+pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: RequestSender) {
     let main_glade = include_str!("main.glade");
     let builder = Builder::from_string(main_glade);
 
@@ -56,10 +67,17 @@ pub fn build(application: &gtk::Application, rx: MessageReceiver) {
             let header: gtk::HeaderBar = builder
                 .get_object("news_item_header")
                 .expect("Couldn't get news_item_header");
-            item.bind_property("title", &header, "title")
+            item.bind_property("itemtype", &header, "subtitle")
                 .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
                 .build();
-            item.bind_property("author", &header, "subtitle")
+            item.bind_property("author", &header, "title")
+                .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
+                .build();
+            let avatar: gtk::Image = builder
+                .get_object("news_item_avatar")
+                .expect("Couldn't get news_item_avatar");
+            //avatar.set_from_file(&item.avatar);
+            item.bind_property("avatar", &avatar, "file")
                 .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
                 .build();
 
@@ -67,7 +85,6 @@ pub fn build(application: &gtk::Application, rx: MessageReceiver) {
             let news_item_datetime: gtk::Label = builder
                 .get_object("news_item_datetime")
                 .expect("Couldn't get news_item_datetime");
-            news_item_datetime.set_halign(gtk::Align::Start);
             item.bind_property("datetime", &news_item_datetime, "label")
                 .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
                 .build();
@@ -76,7 +93,6 @@ pub fn build(application: &gtk::Application, rx: MessageReceiver) {
             let news_item_content: gtk::Label = builder
                 .get_object("news_item_content")
                 .expect("Couldn't get news_item_content");
-            news_item_content.set_halign(gtk::Align::Start);
             item.bind_property("content", &news_item_content, "label")
                 .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
                 .build();
@@ -87,10 +103,51 @@ pub fn build(application: &gtk::Application, rx: MessageReceiver) {
         }),
     );
 
+    // signals
+    let tx_req_copy = tx_req.clone();
+    builder.connect_signals(move |_, handler_name| {
+        // This is the one-time callback to register signals.
+        // Here we map each handler name to its handler.
+        if handler_name == "news_edge_reached" {
+            // Return the news scroll handler
+            let tx_req_copy2 = tx_req_copy.clone();
+            Box::new(move |values| {
+                for val in values {
+                    if let Some(pos) = val.downcast_ref::<gtk::PositionType>() {
+                        if let Some(pos) = pos.get() {
+                            match pos {
+                                gtk::PositionType::Top => {
+                                    log::debug!("reached top, requesting older news");
+                                    let main_context = glib::MainContext::default();
+                                    let tx_req_copy3 = tx_req_copy2.clone();
+                                    main_context.spawn_local(async move {
+                                        let _ = tx_req_copy3.send(Request::NewsOlder).await;
+                                    });
+                                }
+                                gtk::PositionType::Bottom => {
+                                    log::debug!("reached bottom, requesting more recent news");
+                                    let main_context = glib::MainContext::default();
+                                    let tx_req_copy3 = tx_req_copy2.clone();
+                                    main_context.spawn_local(async move {
+                                        let _ = tx_req_copy3.send(Request::NewsNext).await;
+                                    });
+                                }
+                                _ => log::warn!("reached unreachable"),
+                            }
+                        };
+                    }
+                }
+                None
+            })
+        } else {
+            panic!("Unknown handler name {}", handler_name)
+        }
+    });
+
     // select visible right pane
     show_right_pane(&builder, "page_view_news");
 
-    launch_msg_handler(news_item_model, builder, rx);
+    launch_msg_handler(news_item_model, builder, rx_msg);
 
     window.show_all();
 }
@@ -113,12 +170,18 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                 Message::OwnInfo(vm) => {
                     show_user_info(&ui_builder, &vm);
                 }
-                Message::News(item) => model.append(&RowData::new(
-                    &item.author,
-                    &item.title,
-                    &format!("{}", item.datetime.format("%d.%m.%Y %H:%M (%a)")),
-                    &item.content,
-                )),
+                Message::News(update) => {
+                    for view_model in update.into_iter().rev() {
+                        model.append(&RowData::new(&view_model));
+                    }
+                }
+                Message::OlderNews(update) => {
+                    // natural news order is from most recent to oldest,
+                    // so insert every next prior previous:
+                    for view_model in update.into_iter() {
+                        model.insert(0, &RowData::new(&view_model));
+                    }
+                }
             };
         }
     };
@@ -134,18 +197,16 @@ fn build_auth_view(ui_builder: &Builder, tx_response: AuthResponseSender) -> Web
     let tx_holder = RefCell::new(Some(tx_response));
     webview.connect_load_changed(
         clone!(@strong webview, @strong ui_builder => move |view, evt| {
-            //todo: logging
-            println!("{}: {}", evt, view.get_uri().unwrap());
+            log::debug!("{} {}", evt, view.get_uri().unwrap());
             if evt == LoadEvent::Finished {
                 if let Some(uri) = view.get_uri() {
                     if AccessTokenProvider::is_auth_succeeded_uri(uri.as_str()) {
                         // parse auth response
                         if let Ok(auth) = uri.as_str().parse::<AuthResponse>() {
-                            //todo: logging
-                            println!("Authentication is successful: {}", auth);
+                            log::debug!("authentication is successful: {}", auth);
                             let tx_response = tx_holder.borrow_mut().take().unwrap();
                             if let Err(e) = tx_response.send(auth) {
-                                println!("Failed sending auth_response: {}", e);
+                                log::error!("failed sending auth_response: {}", e);
                             }
                             // remove child to prevemt from using it more than once!
                             let parent: ScrolledWindow = ui_builder

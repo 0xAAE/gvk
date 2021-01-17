@@ -1,21 +1,13 @@
-// Our GObject subclass for carrying an author, title and content of a news item for the list_news ListBox model
+// Our GObject subclass for carrying an author, type and content of a news item for the list_news ListBox model
 //
 // (!) Store any property in a RefCell to allow for interior mutability
 // Properties are exposed via normal GObject properties. This allows us to use property
 // bindings below to bind the values with what widgets display in the UI
-use super::*;
-
-use chrono::{DateTime, Local};
+use crate::models::NewsItemModel;
+use gio::prelude::*;
 use glib::subclass;
 use glib::subclass::prelude::*;
 use glib::translate::*;
-
-pub struct NewsItem {
-    pub author: String,
-    pub title: String,
-    pub datetime: DateTime<Local>,
-    pub content: String,
-}
 
 // Implementation sub-module of the GObject
 mod imp {
@@ -25,14 +17,20 @@ mod imp {
     // The actual data structure that stores our values. This is not accessible
     // directly from the outside.
     pub struct RowData {
+        // author name
         author: RefCell<Option<String>>,
-        title: RefCell<Option<String>>,
+        // author image / portrait
+        avatar: RefCell<Option<String>>,
+        // type: post, photo, etc.
+        itemtype: RefCell<Option<String>>,
+        // date and time
         datetime: RefCell<Option<String>>,
+        // text
         content: RefCell<Option<String>>,
     }
 
     // GObject property definitions for our three values
-    static PROPERTIES: [subclass::Property; 4] = [
+    static PROPERTIES: [subclass::Property; 5] = [
         subclass::Property("author", |author| {
             glib::ParamSpec::string(
                 author,
@@ -43,11 +41,21 @@ mod imp {
                 glib::ParamFlags::READWRITE,
             )
         }),
-        subclass::Property("title", |title| {
+        subclass::Property("avatar", |avatar| {
             glib::ParamSpec::string(
-                title,
-                "Title",
-                "Title",
+                avatar,
+                "Avatar",
+                "Avatar",
+                // Default value
+                None,
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("itemtype", |itemtype| {
+            glib::ParamSpec::string(
+                itemtype,
+                "ItemType",
+                "ItemType",
                 // Default value
                 None,
                 glib::ParamFlags::READWRITE,
@@ -97,7 +105,8 @@ mod imp {
         fn new() -> Self {
             Self {
                 author: RefCell::new(None),
-                title: RefCell::new(None),
+                avatar: RefCell::new(None),
+                itemtype: RefCell::new(None),
                 datetime: RefCell::new(None),
                 content: RefCell::new(None),
             }
@@ -123,11 +132,17 @@ mod imp {
                         .expect("author type conformity checked by `Object::set_property`");
                     self.author.replace(author);
                 }
-                subclass::Property("title", ..) => {
-                    let title = value
+                subclass::Property("avatar", ..) => {
+                    let avatar = value
                         .get()
-                        .expect("title type conformity checked by `Object::set_property`");
-                    self.title.replace(title);
+                        .expect("avatar type conformity checked by `Object::set_property`");
+                    self.avatar.replace(avatar);
+                }
+                subclass::Property("itemtype", ..) => {
+                    let itemtype = value
+                        .get()
+                        .expect("itemtype type conformity checked by `Object::set_property`");
+                    self.itemtype.replace(itemtype);
                 }
                 subclass::Property("datetime", ..) => {
                     let datetime = value
@@ -150,7 +165,8 @@ mod imp {
 
             match *prop {
                 subclass::Property("author", ..) => Ok(self.author.borrow().to_value()),
-                subclass::Property("title", ..) => Ok(self.title.borrow().to_value()),
+                subclass::Property("avatar", ..) => Ok(self.avatar.borrow().to_value()),
+                subclass::Property("itemtype", ..) => Ok(self.itemtype.borrow().to_value()),
                 subclass::Property("datetime", ..) => Ok(self.datetime.borrow().to_value()),
                 subclass::Property("content", ..) => Ok(self.content.borrow().to_value()),
                 _ => unimplemented!(),
@@ -172,14 +188,15 @@ glib_wrapper! {
 // Constructor for new instances. This simply calls glib::Object::new() with
 // initial values for our two properties and then returns the new instance
 impl RowData {
-    pub fn new(author: &str, title: &str, datetime: &str, content: &str) -> RowData {
+    pub fn new(model: &NewsItemModel) -> RowData {
         glib::Object::new(
             Self::static_type(),
             &[
-                ("author", &author),
-                ("title", &title),
-                ("datetime", &datetime),
-                ("content", &content),
+                ("author", &model.author),
+                ("avatar", &model.avatar),
+                ("itemtype", &model.itemtype),
+                ("datetime", &model.datetime),
+                ("content", &model.content),
             ],
         )
         .expect("Failed to create row data")
