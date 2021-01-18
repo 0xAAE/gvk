@@ -87,11 +87,8 @@ impl Storage {
             cache_files = cache_home.clone();
         }
         // tune-up RVK tracing
-        let mut trace_dir = cache_home.clone() + "/failed";
-        if std::fs::create_dir_all(&Path::new(trace_dir.as_str())).is_err() {
-            trace_dir = cache_home.clone();
-        }
-        std::env::set_var("RVK_TRACE_DIR", trace_dir.as_str());
+        std::env::set_var("RVK_TRACE_DIR", cache_home.as_str());
+        std::env::set_var("RVK_TRACE_ALL", "1");
         // try load stored cache_files dictionary
         let files = Storage::load_state((cache_home.clone() + CACHE_FILES_NAME).as_str())
             .unwrap_or_else(|| HashMap::new());
