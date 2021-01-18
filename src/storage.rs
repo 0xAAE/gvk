@@ -88,7 +88,7 @@ impl Storage {
         }
         // tune-up RVK tracing
         std::env::set_var("RVK_TRACE_DIR", cache_home.as_str());
-        std::env::set_var("RVK_TRACE_ALL", "1");
+        //std::env::set_var("RVK_TRACE_ALL", "1");
         // try load stored cache_files dictionary
         let files = Storage::load_state((cache_home.clone() + CACHE_FILES_NAME).as_str())
             .unwrap_or_else(|| HashMap::new());
