@@ -27,10 +27,12 @@ mod imp {
         datetime: RefCell<Option<String>>,
         // text
         content: RefCell<Option<String>>,
+        // primary image
+        image0: RefCell<Option<String>>,
     }
 
     // GObject property definitions for our three values
-    static PROPERTIES: [subclass::Property; 5] = [
+    static PROPERTIES: [subclass::Property; 6] = [
         subclass::Property("author", |author| {
             glib::ParamSpec::string(
                 author,
@@ -81,6 +83,16 @@ mod imp {
                 glib::ParamFlags::READWRITE,
             )
         }),
+        subclass::Property("image0", |image0| {
+            glib::ParamSpec::string(
+                image0,
+                "Image0",
+                "Image0",
+                // Default value
+                Some("empty".into()),
+                glib::ParamFlags::READWRITE,
+            )
+        }),
     ];
 
     // Basic declaration of our type for the GObject type system
@@ -109,6 +121,7 @@ mod imp {
                 itemtype: RefCell::new(None),
                 datetime: RefCell::new(None),
                 content: RefCell::new(None),
+                image0: RefCell::new(None),
             }
         }
     }
@@ -156,6 +169,12 @@ mod imp {
                         .expect("content type conformity checked by `Object::set_property`");
                     self.content.replace(content);
                 }
+                subclass::Property("image0", ..) => {
+                    let image0 = value
+                        .get()
+                        .expect("image0 type conformity checked by `Object::set_property`");
+                    self.image0.replace(image0);
+                }
                 _ => unimplemented!(),
             }
         }
@@ -169,6 +188,7 @@ mod imp {
                 subclass::Property("itemtype", ..) => Ok(self.itemtype.borrow().to_value()),
                 subclass::Property("datetime", ..) => Ok(self.datetime.borrow().to_value()),
                 subclass::Property("content", ..) => Ok(self.content.borrow().to_value()),
+                subclass::Property("image0", ..) => Ok(self.image0.borrow().to_value()),
                 _ => unimplemented!(),
             }
         }
@@ -189,6 +209,15 @@ glib_wrapper! {
 // initial values for our two properties and then returns the new instance
 impl RowData {
     pub fn new(model: &NewsItemModel) -> RowData {
+        let image0 = if let Some(ref photos) = model.photos {
+            if photos.len() > 0 {
+                photos[0].uri.clone()
+            } else {
+                String::new()
+            }
+        } else {
+            String::new()
+        };
         glib::Object::new(
             Self::static_type(),
             &[
@@ -197,6 +226,7 @@ impl RowData {
                 ("itemtype", &model.itemtype),
                 ("datetime", &model.datetime),
                 ("content", &model.content),
+                ("image0", &image0),
             ],
         )
         .expect("Failed to create row data")

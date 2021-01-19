@@ -79,7 +79,6 @@ pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: Re
             let avatar: gtk::Image = builder
                 .get_object("news_item_avatar")
                 .expect("Couldn't get news_item_avatar");
-            //avatar.set_from_file(&item.avatar);
             item.bind_property("avatar", &avatar, "file")
                 .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
                 .build();
@@ -97,6 +96,14 @@ pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: Re
                 .get_object("news_item_content")
                 .expect("Couldn't get news_item_content");
             item.bind_property("content", &news_item_content, "label")
+                .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
+                .build();
+
+            // photos
+            let image_0: gtk::Image = builder
+                .get_object("image_0")
+                .expect("Couldn't get image_0");
+            item.bind_property("image0", &image_0, "file")
                 .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
                 .build();
 
