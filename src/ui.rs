@@ -3,8 +3,8 @@ use crate::vk_provider::{AccessTokenProvider, AuthResponse, UserViewModel};
 use gio::prelude::*;
 use gtk::prelude::*;
 use gtk::{
-    AdjustmentExt, ApplicationWindow, Builder, Image, Label, ListBoxExt, ScrolledWindow, Stack,
-    WidgetExt,
+    AdjustmentExt, ApplicationWindow, Builder, ContainerExt, Image, Label, ListBoxExt,
+    ScrolledWindow, Stack, WidgetExt,
 };
 use std::cell::RefCell;
 use tokio::sync::{
@@ -194,25 +194,12 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                         let news_list: gtk::ListBox = ui_builder
                             .get_object("news_list")
                             .expect("Couldn't get news_list");
-                        // --
-                        log::debug!("before adding news");
-                        log::debug!(
-                            "adjustment: <{} - {} - {}>",
-                            news_adjustment.get_lower(),
-                            news_adjustment.get_value(),
-                            news_adjustment.get_upper(),
-                        );
-                        let list_height_before = news_list.get_preferred_height();
-                        log::debug!(
-                            "news_list: {}, {:?}",
-                            news_list.get_allocated_height(),
-                            list_height_before
-                        );
-                        // --
+
                         for view_model in update.into_iter().rev() {
                             model.append(&RowData::new(&view_model));
                             cnt_news += 1;
                         }
+
                         // --
                         log::debug!("after adding news");
                         log::debug!(
@@ -227,25 +214,19 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                             news_list.get_allocated_height(),
                             list_height_after
                         );
-                        // --
                         if is_first_filling && cnt_news > 0 {
                             // srcroll down the list
+                            let h = if let Some(ref last_row) =
+                                news_list.get_row_at_index(cnt_news as i32 - 1)
+                            {
+                                last_row.get_preferred_height().0
+                            } else {
+                                0
+                            };
                             let pos = list_height_after.0 as f64;
-                            // news_adjustment.set_upper(pos);
-                            // news_adjustment.set_value(pos);
-                            news_adjustment.configure(
-                                pos,
-                                0f64,
-                                pos,
-                                news_adjustment.get_step_increment(),
-                                news_adjustment.get_page_increment(),
-                                0f64,
-                            );
+                            news_adjustment.set_upper(pos);
+                            news_adjustment.set_value(pos - h as f64);
                             log::debug!("scroll news to {:?} for the first time", pos);
-                            // let window: gtk::ScrolledWindow = ui_builder
-                            //     .get_object("view_news")
-                            //     .expect("Couldn't get view_news");
-                            // window.show_all();
                         }
                     }
                 }
