@@ -2,7 +2,10 @@ use crate::models::NewsUpdate;
 use crate::vk_provider::{AccessTokenProvider, AuthResponse, UserViewModel};
 use gio::prelude::*;
 use gtk::prelude::*;
-use gtk::{ApplicationWindow, Builder, Image, Label, ScrolledWindow, Stack};
+use gtk::{
+    AdjustmentExt, ApplicationWindow, Builder, ContainerExt, Image, Label, ListBoxExt,
+    ScrolledWindow, Stack, WidgetExt,
+};
 use std::cell::RefCell;
 use tokio::sync::{
     mpsc::{Receiver, Sender},
@@ -156,6 +159,7 @@ pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: Re
 fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: MessageReceiver) {
     let main_context = glib::MainContext::default();
     let future = async move {
+        let mut cnt_news = 0;
         while let Some(item) = rx.recv().await {
             match item {
                 Message::Auth(tx_response) => {
@@ -171,8 +175,32 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                     show_user_info(&ui_builder, &vm);
                 }
                 Message::News(update) => {
-                    for view_model in update.into_iter().rev() {
-                        model.append(&RowData::new(&view_model));
+                    if !update.is_empty() {
+                        let scroll_to_end = cnt_news == 0;
+                        for view_model in update.into_iter().rev() {
+                            model.append(&RowData::new(&view_model));
+                            cnt_news += 1;
+                        }
+                        if scroll_to_end && cnt_news > 0 {
+                            let news_list: gtk::ListBox = ui_builder
+                                .get_object("news_list")
+                                .expect("Couldn't get news_list");
+                            if let Some(news_adjustment) = news_list.get_adjustment() {
+                                // srcroll down the list
+                                let h = if let Some(ref last_row) =
+                                    news_list.get_row_at_index(cnt_news as i32 - 1)
+                                {
+                                    last_row.get_preferred_height().0
+                                } else {
+                                    0
+                                };
+                                let list_height_after = news_list.get_preferred_height();
+                                let pos = list_height_after.0 as f64;
+                                news_adjustment.set_upper(pos);
+                                news_adjustment.set_value(pos - h as f64);
+                                log::debug!("scroll news to {:?} for the first time", pos);
+                            }
+                        }
                     }
                 }
                 Message::OlderNews(update) => {
@@ -180,6 +208,7 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                     // so insert every next prior previous:
                     for view_model in update.into_iter() {
                         model.insert(0, &RowData::new(&view_model));
+                        cnt_news += 1;
                     }
                 }
             };
