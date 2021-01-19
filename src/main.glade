@@ -93,12 +93,6 @@ Author: 0xAAE
     <property name="can-focus">False</property>
     <property name="pixbuf">resources/images/img_video_80.png</property>
   </object>
-  <object class="GtkAdjustment" id="news_adjustment">
-    <property name="upper">100</property>
-    <property name="step-increment">1</property>
-    <property name="page-increment">10</property>
-    <signal name="value-changed" handler="news_adjustment_value_changed" swapped="no"/>
-  </object>
   <object class="GtkApplicationWindow" id="main_window">
     <property name="can-focus">False</property>
     <property name="title" translatable="yes">GVK</property>
@@ -421,7 +415,6 @@ Author: 0xAAE
               <object class="GtkScrolledWindow" id="view_news">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
-                <property name="vadjustment">news_adjustment</property>
                 <property name="shadow-type">in</property>
                 <signal name="edge-reached" handler="news_edge_reached" swapped="no"/>
                 <child>

@@ -142,17 +142,6 @@ pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: Re
                 }
                 None
             })
-        } else if handler_name == "news_adjustment_value_changed" {
-            Box::new(move |values| {
-                for val in values {
-                    if let Some(adjustment) = val.downcast_ref::<gtk::Adjustment>() {
-                        if let Some(adjustment) = adjustment.get() {
-                            log::debug!("adjustment value {}", adjustment.get_value());
-                        }
-                    }
-                }
-                None
-            })
         } else {
             panic!("Unknown handler name {}", handler_name)
         }
@@ -187,46 +176,30 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                 }
                 Message::News(update) => {
                     if !update.is_empty() {
-                        let is_first_filling = cnt_news >= 0;
-                        let news_adjustment: gtk::Adjustment = ui_builder
-                            .get_object("news_adjustment")
-                            .expect("Couldn't get news_adjustment");
-                        let news_list: gtk::ListBox = ui_builder
-                            .get_object("news_list")
-                            .expect("Couldn't get news_list");
-
+                        let scroll_to_end = cnt_news == 0;
                         for view_model in update.into_iter().rev() {
                             model.append(&RowData::new(&view_model));
                             cnt_news += 1;
                         }
-
-                        // --
-                        log::debug!("after adding news");
-                        log::debug!(
-                            "adjustment: <{} - {} - {}>",
-                            news_adjustment.get_lower(),
-                            news_adjustment.get_value(),
-                            news_adjustment.get_upper(),
-                        );
-                        let list_height_after = news_list.get_preferred_height();
-                        log::debug!(
-                            "news_list: {}, {:?}",
-                            news_list.get_allocated_height(),
-                            list_height_after
-                        );
-                        if is_first_filling && cnt_news > 0 {
-                            // srcroll down the list
-                            let h = if let Some(ref last_row) =
-                                news_list.get_row_at_index(cnt_news as i32 - 1)
-                            {
-                                last_row.get_preferred_height().0
-                            } else {
-                                0
-                            };
-                            let pos = list_height_after.0 as f64;
-                            news_adjustment.set_upper(pos);
-                            news_adjustment.set_value(pos - h as f64);
-                            log::debug!("scroll news to {:?} for the first time", pos);
+                        if scroll_to_end && cnt_news > 0 {
+                            let news_list: gtk::ListBox = ui_builder
+                                .get_object("news_list")
+                                .expect("Couldn't get news_list");
+                            if let Some(news_adjustment) = news_list.get_adjustment() {
+                                // srcroll down the list
+                                let h = if let Some(ref last_row) =
+                                    news_list.get_row_at_index(cnt_news as i32 - 1)
+                                {
+                                    last_row.get_preferred_height().0
+                                } else {
+                                    0
+                                };
+                                let list_height_after = news_list.get_preferred_height();
+                                let pos = list_height_after.0 as f64;
+                                news_adjustment.set_upper(pos);
+                                news_adjustment.set_value(pos - h as f64);
+                                log::debug!("scroll news to {:?} for the first time", pos);
+                            }
                         }
                     }
                 }
