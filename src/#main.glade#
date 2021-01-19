@@ -96,7 +96,6 @@ Author: 0xAAE
   <object class="GtkAdjustment" id="news_adjustment">
     <property name="upper">100</property>
     <property name="step-increment">1</property>
-    <property name="page-increment">10</property>
     <signal name="value-changed" handler="news_adjustment_value_changed" swapped="no"/>
   </object>
   <object class="GtkApplicationWindow" id="main_window">

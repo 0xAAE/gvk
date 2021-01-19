@@ -94,6 +94,10 @@ impl NewsUpdate {
         };
         NewsUpdate { items }
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.items.is_empty()
+    }
 }
 
 impl IntoIterator for NewsUpdate {
