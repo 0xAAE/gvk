@@ -29,10 +29,11 @@ mod imp {
         content: RefCell<Option<String>>,
         // primary image
         image0: RefCell<Option<String>>,
+        image0vis: RefCell<bool>,
     }
 
     // GObject property definitions for our three values
-    static PROPERTIES: [subclass::Property; 6] = [
+    static PROPERTIES: [subclass::Property; 7] = [
         subclass::Property("author", |author| {
             glib::ParamSpec::string(
                 author,
@@ -93,6 +94,16 @@ mod imp {
                 glib::ParamFlags::READWRITE,
             )
         }),
+        subclass::Property("image0vis", |image0vis| {
+            glib::ParamSpec::boolean(
+                image0vis,
+                "Image0vis",
+                "Image0vis",
+                // Default value
+                false,
+                glib::ParamFlags::READWRITE,
+            )
+        }),
     ];
 
     // Basic declaration of our type for the GObject type system
@@ -122,6 +133,7 @@ mod imp {
                 datetime: RefCell::new(None),
                 content: RefCell::new(None),
                 image0: RefCell::new(None),
+                image0vis: RefCell::new(false),
             }
         }
     }
@@ -175,6 +187,13 @@ mod imp {
                         .expect("image0 type conformity checked by `Object::set_property`");
                     self.image0.replace(image0);
                 }
+                subclass::Property("image0vis", ..) => {
+                    let image0vis = value
+                        .get()
+                        .expect("image0vis type conformity checked by `Object::set_property`")
+                        .unwrap_or(false);
+                    self.image0vis.replace(image0vis);
+                }
                 _ => unimplemented!(),
             }
         }
@@ -189,6 +208,7 @@ mod imp {
                 subclass::Property("datetime", ..) => Ok(self.datetime.borrow().to_value()),
                 subclass::Property("content", ..) => Ok(self.content.borrow().to_value()),
                 subclass::Property("image0", ..) => Ok(self.image0.borrow().to_value()),
+                subclass::Property("image0vis", ..) => Ok(self.image0vis.borrow().to_value()),
                 _ => unimplemented!(),
             }
         }
@@ -218,6 +238,7 @@ impl RowData {
         } else {
             String::new()
         };
+        let image0vis = !image0.is_empty();
         glib::Object::new(
             Self::static_type(),
             &[
@@ -227,6 +248,7 @@ impl RowData {
                 ("datetime", &model.datetime),
                 ("content", &model.content),
                 ("image0", &image0),
+                ("image0vis", &image0vis),
             ],
         )
         .expect("Failed to create row data")

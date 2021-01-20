@@ -106,6 +106,9 @@ pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: Re
             item.bind_property("image0", &image_0, "file")
                 .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
                 .build();
+            item.bind_property("image0vis", &image_0, "visible")
+                .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
+                .build();
 
             box_.add(&news_item_view);
             box_.show_all();
