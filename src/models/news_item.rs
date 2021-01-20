@@ -167,7 +167,7 @@ async fn extract_photos(item: &NewsItem, storage: &Storage) -> Option<Vec<Photo>
     }
 }
 
-static PRIO_0: [&str; 6] = ["r", "q", "x", "p", "o", "m"];
+static PRIO_0: [&str; 7] = ["x", "r", "q", "x", "p", "o", "m"];
 static PRIO_1: [&str; 4] = ["q", "p", "o", "m"];
 static PRIO_2: [&str; 4] = ["q", "p", "o", "m"];
 static PRIO_N: [&str; 2] = ["o", "m"];
