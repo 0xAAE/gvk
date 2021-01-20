@@ -1,4 +1,5 @@
 use crate::vk_provider::AuthResponse;
+use chrono::Local;
 use std::collections::HashMap;
 use std::env::vars_os;
 use std::fmt;
@@ -207,7 +208,7 @@ impl Storage {
 
     /// If file is already in cache returns its pathname,
     /// otherwise downloads file, then caches it and also returns its pathname
-    pub async fn get_file(&self, uri: &str) -> Result<String, StorageError> {
+    pub async fn get_file(&self, uri: &str, name_prefix: &str) -> Result<String, StorageError> {
         if uri.is_empty() {
             Err(StorageError::DownloadFile("name not set".into()))
         } else {
@@ -218,7 +219,7 @@ impl Storage {
                     }
                 }
             }
-            download::file(uri, self.cache_files.as_str())
+            download::file(uri, self.cache_files.as_str(), name_prefix)
                 .await
                 .map(|s| {
                     if let Ok(mut write) = self.files.write() {
@@ -238,11 +239,15 @@ impl Storage {
     }
 
     /// downloads file, then returns its pathname
-    pub async fn get_temp_file(&self, uri: &str) -> Result<String, StorageError> {
+    pub async fn get_temp_file(
+        &self,
+        uri: &str,
+        name_prefix: &str,
+    ) -> Result<String, StorageError> {
         if uri.is_empty() {
             Err(StorageError::DownloadFile("name not set".into()))
         } else {
-            download::file(uri, self.temp_files.as_str())
+            download::file(uri, self.temp_files.as_str(), name_prefix)
                 .await
                 .map_err(|e| {
                     log::warn!("download error: {}", e);

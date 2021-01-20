@@ -12,11 +12,18 @@ use crate::utils::local_from_timestamp;
 use crate::vk_provider::constants::*;
 use rvk::objects::newsfeed::{Item as NewsItem, NewsFeed};
 use rvk::objects::photo::Photo as NewsPhoto;
+use std::fmt;
 use std::iter::{IntoIterator, Iterator};
 
 pub struct Photo {
     pub uri: String,
     pub text: String,
+}
+
+impl fmt::Display for Photo {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "photo {}", self.uri)
+    }
 }
 
 pub struct NewsItemModel {
@@ -60,7 +67,7 @@ impl NewsUpdate {
                     // author is user
                     if let Some(user) = users.iter().find(|u| u.id == src.source_id) {
                         if let Ok(filename) = storage
-                            .get_file(user.photo_50.as_ref().unwrap().as_str())
+                            .get_file(user.photo_50.as_ref().unwrap().as_str(), "")
                             .await
                         {
                             avatar = filename;
@@ -73,7 +80,7 @@ impl NewsUpdate {
                     // source is group, source_id is *negative* as defined in VK.com API doc
                     // see https://vk.com/dev/newsfeed.get description of source_id in description of items
                     if let Some(grp) = groups.iter().find(|g| g.id == -src.source_id) {
-                        if let Ok(filename) = storage.get_file(grp.photo_50.as_str()).await {
+                        if let Ok(filename) = storage.get_file(grp.photo_50.as_str(), "").await {
                             avatar = filename;
                         }
                         grp.name.clone()
@@ -139,14 +146,6 @@ async fn extract_photos(item: &NewsItem, storage: &Storage) -> Option<Vec<Photo>
     // for any type continue searching in attachments
     if let Some(ref attachments) = item.attachments {
         for attachemnt in attachments {
-            if let Some(ref posted_photo) = attachemnt.posted_photo {
-                if let Ok(uri) = storage.get_temp_file(posted_photo.photo_130.as_str()).await {
-                    result.push(Photo {
-                        text: String::new(),
-                        uri,
-                    })
-                }
-            }
             if let Some(ref src_photo) = attachemnt.photo {
                 if let Some(ref sizes) = src_photo.sizes {
                     if !sizes.is_empty() {
@@ -155,6 +154,17 @@ async fn extract_photos(item: &NewsItem, storage: &Storage) -> Option<Vec<Photo>
                             result.push(res_photo);
                         }
                     }
+                }
+            }
+            if let Some(ref posted_photo) = attachemnt.posted_photo {
+                if let Ok(uri) = storage
+                    .get_temp_file(posted_photo.photo_130.as_str(), "p")
+                    .await
+                {
+                    result.push(Photo {
+                        text: String::new(),
+                        uri,
+                    });
                 }
             }
         }
@@ -168,23 +178,19 @@ async fn extract_photos(item: &NewsItem, storage: &Storage) -> Option<Vec<Photo>
 }
 
 static PRIO_0: [&str; 7] = ["x", "r", "q", "x", "p", "o", "m"];
-static PRIO_1: [&str; 4] = ["q", "p", "o", "m"];
-static PRIO_2: [&str; 4] = ["q", "p", "o", "m"];
 static PRIO_N: [&str; 2] = ["o", "m"];
 
 async fn select_uri(src_photo: &NewsPhoto, idx: usize, storage: &Storage) -> Option<Photo> {
     let prio = match idx {
-        0 => &PRIO_0[..],
-        1 => &PRIO_1[..],
-        2 => &PRIO_2[..],
+        0 | 1 => &PRIO_0[..],
         _ => &PRIO_N[..],
     };
-    if let Some(ref sizes) = src_photo.sizes {
+    if let Some(sizes) = &src_photo.sizes {
         for p in prio {
             if let Some(size) = sizes.iter().find(|s| s.type_.as_str() == *p) {
-                if let Some(ref url) = size.url {
-                    if let Ok(uri) = storage.get_temp_file(url).await {
-                        let text = if let Some(ref val) = src_photo.text {
+                if let Some(url) = &size.url {
+                    if let Ok(uri) = storage.get_temp_file(url, *p).await {
+                        let text = if let Some(val) = &src_photo.text {
                             val.clone()
                         } else {
                             String::new()

@@ -30,10 +30,31 @@ mod imp {
         // primary image
         image0: RefCell<Option<String>>,
         image0vis: RefCell<bool>,
+        // secondary images: 1
+        image1: RefCell<Option<String>>,
+        image1vis: RefCell<bool>,
+        // secondary images: 2
+        image2: RefCell<Option<String>>,
+        image2vis: RefCell<bool>,
+        // other messages
+        image3: RefCell<Option<String>>,
+        image3vis: RefCell<bool>,
+        image4: RefCell<Option<String>>,
+        image4vis: RefCell<bool>,
+        image5: RefCell<Option<String>>,
+        image5vis: RefCell<bool>,
+        image6: RefCell<Option<String>>,
+        image6vis: RefCell<bool>,
+        image7: RefCell<Option<String>>,
+        image7vis: RefCell<bool>,
+        image8: RefCell<Option<String>>,
+        image8vis: RefCell<bool>,
+        image9: RefCell<Option<String>>,
+        image9vis: RefCell<bool>,
     }
 
     // GObject property definitions for our three values
-    static PROPERTIES: [subclass::Property; 7] = [
+    static PROPERTIES: [subclass::Property; 25] = [
         subclass::Property("author", |author| {
             glib::ParamSpec::string(
                 author,
@@ -104,6 +125,186 @@ mod imp {
                 glib::ParamFlags::READWRITE,
             )
         }),
+        subclass::Property("image1", |image1| {
+            glib::ParamSpec::string(
+                image1,
+                "Image1",
+                "Image1",
+                // Default value
+                Some("empty".into()),
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("image1vis", |image1vis| {
+            glib::ParamSpec::boolean(
+                image1vis,
+                "Image1vis",
+                "Image1vis",
+                // Default value
+                false,
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("image2", |image2| {
+            glib::ParamSpec::string(
+                image2,
+                "Image2",
+                "Image2",
+                // Default value
+                Some("empty".into()),
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("image2vis", |image2vis| {
+            glib::ParamSpec::boolean(
+                image2vis,
+                "Image2vis",
+                "Image2vis",
+                // Default value
+                false,
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("image3", |image3| {
+            glib::ParamSpec::string(
+                image3,
+                "Image3",
+                "Image3",
+                // Default value
+                Some("empty".into()),
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("image3vis", |image3vis| {
+            glib::ParamSpec::boolean(
+                image3vis,
+                "Image3vis",
+                "Image3vis",
+                // Default value
+                false,
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("image4", |image4| {
+            glib::ParamSpec::string(
+                image4,
+                "Image4",
+                "Image4",
+                // Default value
+                Some("empty".into()),
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("image4vis", |image4vis| {
+            glib::ParamSpec::boolean(
+                image4vis,
+                "Image4vis",
+                "Image4vis",
+                // Default value
+                false,
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("image5", |image5| {
+            glib::ParamSpec::string(
+                image5,
+                "Image5",
+                "Image5",
+                // Default value
+                Some("empty".into()),
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("image5vis", |image5vis| {
+            glib::ParamSpec::boolean(
+                image5vis,
+                "Image5vis",
+                "Image5vis",
+                // Default value
+                false,
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("image6", |image6| {
+            glib::ParamSpec::string(
+                image6,
+                "Image6",
+                "Image6",
+                // Default value
+                Some("empty".into()),
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("image6vis", |image6vis| {
+            glib::ParamSpec::boolean(
+                image6vis,
+                "Image6vis",
+                "Image6vis",
+                // Default value
+                false,
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("image7", |image7| {
+            glib::ParamSpec::string(
+                image7,
+                "Image7",
+                "Image7",
+                // Default value
+                Some("empty".into()),
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("image7vis", |image7vis| {
+            glib::ParamSpec::boolean(
+                image7vis,
+                "Image7vis",
+                "Image7vis",
+                // Default value
+                false,
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("image8", |image8| {
+            glib::ParamSpec::string(
+                image8,
+                "Image8",
+                "Image8",
+                // Default value
+                Some("empty".into()),
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("image8vis", |image8vis| {
+            glib::ParamSpec::boolean(
+                image8vis,
+                "Image8vis",
+                "Image8vis",
+                // Default value
+                false,
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("image9", |image9| {
+            glib::ParamSpec::string(
+                image9,
+                "Image9",
+                "Image9",
+                // Default value
+                Some("empty".into()),
+                glib::ParamFlags::READWRITE,
+            )
+        }),
+        subclass::Property("image9vis", |image9vis| {
+            glib::ParamSpec::boolean(
+                image9vis,
+                "Image9vis",
+                "Image9vis",
+                // Default value
+                false,
+                glib::ParamFlags::READWRITE,
+            )
+        }),
     ];
 
     // Basic declaration of our type for the GObject type system
@@ -134,6 +335,24 @@ mod imp {
                 content: RefCell::new(None),
                 image0: RefCell::new(None),
                 image0vis: RefCell::new(false),
+                image1: RefCell::new(None),
+                image1vis: RefCell::new(false),
+                image2: RefCell::new(None),
+                image2vis: RefCell::new(false),
+                image3: RefCell::new(None),
+                image3vis: RefCell::new(false),
+                image4: RefCell::new(None),
+                image4vis: RefCell::new(false),
+                image5: RefCell::new(None),
+                image5vis: RefCell::new(false),
+                image6: RefCell::new(None),
+                image6vis: RefCell::new(false),
+                image7: RefCell::new(None),
+                image7vis: RefCell::new(false),
+                image8: RefCell::new(None),
+                image8vis: RefCell::new(false),
+                image9: RefCell::new(None),
+                image9vis: RefCell::new(false),
             }
         }
     }
@@ -194,6 +413,123 @@ mod imp {
                         .unwrap_or(false);
                     self.image0vis.replace(image0vis);
                 }
+                subclass::Property("image1", ..) => {
+                    let image1 = value
+                        .get()
+                        .expect("image1 type conformity checked by `Object::set_property`");
+                    self.image1.replace(image1);
+                }
+                subclass::Property("image1vis", ..) => {
+                    let image1vis = value
+                        .get()
+                        .expect("image1vis type conformity checked by `Object::set_property`")
+                        .unwrap_or(false);
+                    self.image1vis.replace(image1vis);
+                }
+                subclass::Property("image2", ..) => {
+                    let image2 = value
+                        .get()
+                        .expect("image2 type conformity checked by `Object::set_property`");
+                    self.image2.replace(image2);
+                }
+                subclass::Property("image2vis", ..) => {
+                    let image2vis = value
+                        .get()
+                        .expect("image2vis type conformity checked by `Object::set_property`")
+                        .unwrap_or(false);
+                    self.image2vis.replace(image2vis);
+                }
+                subclass::Property("image3", ..) => {
+                    let image3 = value
+                        .get()
+                        .expect("image3 type conformity checked by `Object::set_property`");
+                    self.image3.replace(image3);
+                }
+                subclass::Property("image3vis", ..) => {
+                    let image3vis = value
+                        .get()
+                        .expect("image3vis type conformity checked by `Object::set_property`")
+                        .unwrap_or(false);
+                    self.image3vis.replace(image3vis);
+                }
+                subclass::Property("image4", ..) => {
+                    let image4 = value
+                        .get()
+                        .expect("image4 type conformity checked by `Object::set_property`");
+                    self.image4.replace(image4);
+                }
+                subclass::Property("image4vis", ..) => {
+                    let image4vis = value
+                        .get()
+                        .expect("image4vis type conformity checked by `Object::set_property`")
+                        .unwrap_or(false);
+                    self.image4vis.replace(image4vis);
+                }
+                subclass::Property("image5", ..) => {
+                    let image5 = value
+                        .get()
+                        .expect("image5 type conformity checked by `Object::set_property`");
+                    self.image5.replace(image5);
+                }
+                subclass::Property("image5vis", ..) => {
+                    let image5vis = value
+                        .get()
+                        .expect("image5vis type conformity checked by `Object::set_property`")
+                        .unwrap_or(false);
+                    self.image5vis.replace(image5vis);
+                }
+                subclass::Property("image6", ..) => {
+                    let image6 = value
+                        .get()
+                        .expect("image6 type conformity checked by `Object::set_property`");
+                    self.image6.replace(image6);
+                }
+                subclass::Property("image6vis", ..) => {
+                    let image6vis = value
+                        .get()
+                        .expect("image6vis type conformity checked by `Object::set_property`")
+                        .unwrap_or(false);
+                    self.image6vis.replace(image6vis);
+                }
+                subclass::Property("image7", ..) => {
+                    let image7 = value
+                        .get()
+                        .expect("image7 type conformity checked by `Object::set_property`");
+                    self.image7.replace(image7);
+                }
+                subclass::Property("image7vis", ..) => {
+                    let image7vis = value
+                        .get()
+                        .expect("image7vis type conformity checked by `Object::set_property`")
+                        .unwrap_or(false);
+                    self.image7vis.replace(image7vis);
+                }
+                subclass::Property("image8", ..) => {
+                    let image8 = value
+                        .get()
+                        .expect("image8 type conformity checked by `Object::set_property`");
+                    self.image8.replace(image8);
+                }
+                subclass::Property("image8vis", ..) => {
+                    let image8vis = value
+                        .get()
+                        .expect("image8vis type conformity checked by `Object::set_property`")
+                        .unwrap_or(false);
+                    self.image8vis.replace(image8vis);
+                }
+                subclass::Property("image9", ..) => {
+                    let image9 = value
+                        .get()
+                        .expect("image9 type conformity checked by `Object::set_property`");
+                    self.image9.replace(image9);
+                }
+                subclass::Property("image9vis", ..) => {
+                    let image9vis = value
+                        .get()
+                        .expect("image9vis type conformity checked by `Object::set_property`")
+                        .unwrap_or(false);
+                    self.image9vis.replace(image9vis);
+                }
                 _ => unimplemented!(),
             }
         }
@@ -209,6 +545,24 @@ mod imp {
                 subclass::Property("content", ..) => Ok(self.content.borrow().to_value()),
                 subclass::Property("image0", ..) => Ok(self.image0.borrow().to_value()),
                 subclass::Property("image0vis", ..) => Ok(self.image0vis.borrow().to_value()),
+                subclass::Property("image1", ..) => Ok(self.image1.borrow().to_value()),
+                subclass::Property("image1vis", ..) => Ok(self.image1vis.borrow().to_value()),
+                subclass::Property("image2", ..) => Ok(self.image2.borrow().to_value()),
+                subclass::Property("image2vis", ..) => Ok(self.image2vis.borrow().to_value()),
+                subclass::Property("image3", ..) => Ok(self.image3.borrow().to_value()),
+                subclass::Property("image3vis", ..) => Ok(self.image3vis.borrow().to_value()),
+                subclass::Property("image4", ..) => Ok(self.image4.borrow().to_value()),
+                subclass::Property("image4vis", ..) => Ok(self.image4vis.borrow().to_value()),
+                subclass::Property("image5", ..) => Ok(self.image5.borrow().to_value()),
+                subclass::Property("image5vis", ..) => Ok(self.image5vis.borrow().to_value()),
+                subclass::Property("image6", ..) => Ok(self.image6.borrow().to_value()),
+                subclass::Property("image6vis", ..) => Ok(self.image6vis.borrow().to_value()),
+                subclass::Property("image7", ..) => Ok(self.image7.borrow().to_value()),
+                subclass::Property("image7vis", ..) => Ok(self.image7vis.borrow().to_value()),
+                subclass::Property("image8", ..) => Ok(self.image8.borrow().to_value()),
+                subclass::Property("image8vis", ..) => Ok(self.image8vis.borrow().to_value()),
+                subclass::Property("image9", ..) => Ok(self.image9.borrow().to_value()),
+                subclass::Property("image9vis", ..) => Ok(self.image9vis.borrow().to_value()),
                 _ => unimplemented!(),
             }
         }
@@ -229,16 +583,18 @@ glib_wrapper! {
 // initial values for our two properties and then returns the new instance
 impl RowData {
     pub fn new(model: &NewsItemModel) -> RowData {
-        let image0 = if let Some(ref photos) = model.photos {
-            if photos.len() > 0 {
-                photos[0].uri.clone()
-            } else {
-                String::new()
+        let mut image: [String; 10] = Default::default(); // [String::new(); 10];
+        let mut vis: [bool; 10] = [false; 10];
+
+        if let Some(ref photos) = model.photos {
+            for (i, photo) in photos.iter().enumerate() {
+                if !photo.uri.is_empty() {
+                    image[i] = photo.uri.clone();
+                    vis[i] = true;
+                }
             }
-        } else {
-            String::new()
         };
-        let image0vis = !image0.is_empty();
+
         glib::Object::new(
             Self::static_type(),
             &[
@@ -247,8 +603,26 @@ impl RowData {
                 ("itemtype", &model.itemtype),
                 ("datetime", &model.datetime),
                 ("content", &model.content),
-                ("image0", &image0),
-                ("image0vis", &image0vis),
+                ("image0", &image[0]),
+                ("image0vis", &vis[0]),
+                ("image1", &image[1]),
+                ("image1vis", &vis[1]),
+                ("image2", &image[2]),
+                ("image2vis", &vis[2]),
+                ("image3", &image[3]),
+                ("image3vis", &vis[3]),
+                ("image4", &image[4]),
+                ("image4vis", &vis[4]),
+                ("image5", &image[5]),
+                ("image5vis", &vis[5]),
+                ("image6", &image[6]),
+                ("image6vis", &vis[6]),
+                ("image7", &image[7]),
+                ("image7vis", &vis[7]),
+                ("image8", &image[8]),
+                ("image8vis", &vis[8]),
+                ("image9", &image[9]),
+                ("image9vis", &vis[9]),
             ],
         )
         .expect("Failed to create row data")
