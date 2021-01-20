@@ -103,12 +103,11 @@ pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: Re
             let image_0: gtk::Image = builder
                 .get_object("image_0")
                 .expect("Couldn't get image_0");
-            item.bind_property("image0", &image_0, "file")
-                .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
-                .build();
-            item.bind_property("image0vis", &image_0, "visible")
-                .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
-                .build();
+            if test_property(&item.get_property("image0vis"), true) {
+                item.bind_property("image0", &image_0, "file")
+                    .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
+                    .build();
+            }
 
             box_.add(&news_item_view);
             box_.show_all();
@@ -225,6 +224,20 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
         }
     };
     main_context.spawn_local(future);
+}
+
+fn test_property<'t, T, E>(prop: &'t Result<glib::Value, E>, value: T) -> bool
+where
+    T: glib::value::FromValueOptional<'t> + PartialEq,
+{
+    if let Ok(glib_value) = prop {
+        if let Ok(prop) = glib_value.get::<T>() {
+            if let Some(val) = prop {
+                return val == value;
+            }
+        }
+    }
+    false
 }
 
 fn build_auth_view(ui_builder: &Builder, tx_response: AuthResponseSender) -> WebView {
