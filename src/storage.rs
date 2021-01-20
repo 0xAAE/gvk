@@ -1,4 +1,5 @@
 use crate::vk_provider::AuthResponse;
+use chrono::Local;
 use std::collections::HashMap;
 use std::env::vars_os;
 use std::fmt;
@@ -21,6 +22,8 @@ const CACHE_FILES_NAME: &str = "/cache_files.json";
 pub struct Storage {
     // root path
     cache_home: String,
+    // temp files
+    temp_files: String,
     // file storage
     cache_files: String,
     // URL --> file pathname
@@ -86,6 +89,15 @@ impl Storage {
             );
             cache_files = cache_home.clone();
         }
+        // temp files storage
+        let mut temp_files = cache_home.clone() + "/temp";
+        if std::fs::create_dir_all(&Path::new(temp_files.as_str())).is_err() {
+            log::error!(
+                "(inner) failed creating temporary files cache in {}, won't display the most of images",
+                temp_files.as_str()
+            );
+            temp_files = String::new();
+        }
         // tune-up RVK tracing
         std::env::set_var("RVK_TRACE_DIR", cache_home.as_str());
         //std::env::set_var("RVK_TRACE_ALL", "1");
@@ -97,6 +109,7 @@ impl Storage {
         }
         Storage {
             cache_home,
+            temp_files,
             cache_files,
             files: RwLock::new(files),
             is_files_dirty: AtomicBool::new(false),
@@ -194,8 +207,8 @@ impl Storage {
     }
 
     /// If file is already in cache returns its pathname,
-    /// otherwise downloads file, then caches it and also return its pathname
-    pub async fn get_file(&self, uri: &str) -> Result<String, StorageError> {
+    /// otherwise downloads file, then caches it and also returns its pathname
+    pub async fn get_file(&self, uri: &str, name_prefix: &str) -> Result<String, StorageError> {
         if uri.is_empty() {
             Err(StorageError::DownloadFile("name not set".into()))
         } else {
@@ -206,7 +219,7 @@ impl Storage {
                     }
                 }
             }
-            download::file(uri, self.cache_files.as_str())
+            download::file(uri, self.cache_files.as_str(), name_prefix)
                 .await
                 .map(|s| {
                     if let Ok(mut write) = self.files.write() {
@@ -218,6 +231,24 @@ impl Storage {
                         String::new()
                     }
                 })
+                .map_err(|e| {
+                    log::warn!("download error: {}", e);
+                    StorageError::DownloadFile(uri.to_string())
+                })
+        }
+    }
+
+    /// downloads file, then returns its pathname
+    pub async fn get_temp_file(
+        &self,
+        uri: &str,
+        name_prefix: &str,
+    ) -> Result<String, StorageError> {
+        if uri.is_empty() {
+            Err(StorageError::DownloadFile("name not set".into()))
+        } else {
+            download::file(uri, self.temp_files.as_str(), name_prefix)
+                .await
                 .map_err(|e| {
                     log::warn!("download error: {}", e);
                     StorageError::DownloadFile(uri.to_string())
