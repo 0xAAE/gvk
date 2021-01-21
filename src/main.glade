@@ -98,6 +98,7 @@ Author: 0xAAE
     <property name="title" translatable="yes">GVK</property>
     <property name="default-width">1024</property>
     <property name="default-height">768</property>
+    <signal name="delete-event" handler="delete_main_window" swapped="no"/>
     <child>
       <object class="GtkPaned" id="root_pane">
         <property name="visible">True</property>

@@ -32,6 +32,8 @@ pub enum Message {
 }
 
 pub enum Request {
+    // Stop working
+    Stop,
     // Request a portion of news prior the oldest
     NewsOlder,
     // request a portion of news after the most recent
@@ -101,6 +103,18 @@ pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: Re
                     }
                 }
                 None
+            })
+        } else if handler_name == "delete_main_window" {
+            // Return the news exit handler
+            let tx_req_copy2 = tx_req_copy.clone();
+            Box::new(move |_| {
+                log::debug!("sending stop request to vk_provider");
+                let main_context = glib::MainContext::default();
+                let tx_req_copy3 = tx_req_copy2.clone();
+                main_context.spawn_local(async move {
+                    let _ = tx_req_copy3.send(Request::Stop).await;
+                });
+                Some(glib::Value::from(&false))
             })
         } else {
             panic!("Unknown handler name {}", handler_name)

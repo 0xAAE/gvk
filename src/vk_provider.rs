@@ -140,6 +140,10 @@ pub fn run_with_own_runtime(
                                     }
                                 }
                             }
+                            Request::Stop => {
+                                storage_copy.prepare_to_stop();
+                                break;
+                            }
                         }
                     } else {
                         log::warn!(
