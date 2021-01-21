@@ -10,8 +10,13 @@
 use crate::storage::Storage;
 use crate::utils::local_from_timestamp;
 use crate::vk_provider::constants::*;
-use rvk::objects::newsfeed::{Item as NewsItem, NewsFeed};
-use rvk::objects::photo::Photo as NewsPhoto;
+use rvk::objects::{
+    attachment::PostedPhoto,
+    link::Link,
+    newsfeed::{Item as NewsItem, NewsFeed},
+    photo::Photo as NewsPhoto,
+    video::Video,
+};
 use std::fmt;
 use std::iter::{IntoIterator, Iterator};
 
@@ -130,16 +135,44 @@ async fn extract_photos(item: &NewsItem, storage: &Storage) -> Option<Vec<Photo>
     // for photo types search in photos
     match item.type_.as_str() {
         NEWS_TYPE_PHOTO | NEWS_TYPE_PHOTO_TAG | NEWS_TYPE_WALL_PHOTO => {
-            if let Some(ref photoset) = item.photos {
-                if let Some(ref photos) = photoset.items {
+            if let Some(photoset) = &item.photos {
+                if let Some(photos) = &photoset.items {
                     for src_photo in photos {
-                        if let Some(ref sizes) = src_photo.sizes {
-                            if !sizes.is_empty() {
+                        if let Some(res_photo) =
+                            select_photo(&src_photo, result.len(), storage).await
+                        {
+                            result.push(res_photo);
+                        }
+                    }
+                }
+            }
+        }
+        NEWS_TYPE_POST => {
+            if let Some(copy_history) = &item.copy_history {
+                for history_item in copy_history {
+                    // for any type continue searching in attachments (WallAttachment)
+                    if let Some(attachments) = &history_item.attachments {
+                        // different attachment types might contain photos
+                        for attachment in attachments {
+                            // photo itself
+                            if let Some(src_photo) = &attachment.photo {
                                 if let Some(res_photo) =
-                                    select_uri(&src_photo, result.len(), storage).await
+                                    select_photo(src_photo, result.len(), storage).await
                                 {
                                     result.push(res_photo);
                                 }
+                            }
+                            // also, link might hold a photo
+                            if let Some(link) = &attachment.link {
+                                append_from_link(&mut result, link, storage).await;
+                            }
+                            // video
+                            if let Some(video) = &attachment.video {
+                                append_from_video(&mut result, video, storage).await;
+                            }
+                            // posted photo
+                            if let Some(posted_photo) = &attachment.posted_photo {
+                                append_from_posted_photo(&mut result, posted_photo, storage).await;
                             }
                         }
                     }
@@ -148,29 +181,27 @@ async fn extract_photos(item: &NewsItem, storage: &Storage) -> Option<Vec<Photo>
         }
         &_ => {}
     }
-    // for any type continue searching in attachments
-    if let Some(ref attachments) = item.attachments {
-        for attachemnt in attachments {
-            if let Some(ref src_photo) = attachemnt.photo {
-                if let Some(ref sizes) = src_photo.sizes {
-                    if !sizes.is_empty() {
-                        if let Some(res_photo) = select_uri(&src_photo, result.len(), storage).await
-                        {
-                            result.push(res_photo);
-                        }
-                    }
+    // for any type continue searching in attachments (NewsAttachments)
+    if let Some(attachments) = &item.attachments {
+        // different attachment types might contain photos
+        for attachment in attachments {
+            // photo itself
+            if let Some(src_photo) = &attachment.photo {
+                if let Some(res_photo) = select_photo(src_photo, result.len(), storage).await {
+                    result.push(res_photo);
                 }
             }
-            if let Some(ref posted_photo) = attachemnt.posted_photo {
-                if let Ok(uri) = storage
-                    .get_temp_file(posted_photo.photo_130.as_str(), "p")
-                    .await
-                {
-                    result.push(Photo {
-                        text: String::new(),
-                        uri,
-                    });
-                }
+            // also, link might hold a photo
+            if let Some(link) = &attachment.link {
+                append_from_link(&mut result, link, storage).await;
+            }
+            // video
+            if let Some(video) = &attachment.video {
+                append_from_video(&mut result, video, storage).await;
+            }
+            // posted photo
+            if let Some(posted_photo) = &attachment.posted_photo {
+                append_from_posted_photo(&mut result, posted_photo, storage).await;
             }
         }
     }
@@ -182,10 +213,104 @@ async fn extract_photos(item: &NewsItem, storage: &Storage) -> Option<Vec<Photo>
     }
 }
 
+async fn append_from_link(cont: &mut Vec<Photo>, link: &Link, storage: &Storage) {
+    if let Some(src_photo) = &link.photo {
+        if let Some(mut res_photo) = select_photo(src_photo, cont.len(), storage).await {
+            if res_photo.text.is_empty() {
+                res_photo.text = if let Some(text) = &link.description {
+                    if !text.is_empty() {
+                        text.clone()
+                    } else {
+                        link.title.clone()
+                    }
+                } else {
+                    link.title.clone()
+                }
+            };
+            cont.push(res_photo);
+        }
+    }
+}
+
+async fn append_from_video(cont: &mut Vec<Photo>, video: &Video, storage: &Storage) {
+    let mut found = false;
+    if cont.len() < 3 {
+        if let Some(src_uri) = &video.photo_640 {
+            if let Ok(uri) = storage.get_temp_file(src_uri, "vx").await {
+                found = true;
+                cont.push(Photo {
+                    text: String::new(),
+                    uri,
+                });
+            }
+        }
+    } else {
+        if let Some(src_uri) = &video.photo_130 {
+            if let Ok(uri) = storage.get_temp_file(src_uri, "vp").await {
+                found = true;
+                cont.push(Photo {
+                    text: String::new(),
+                    uri,
+                });
+            }
+        }
+    }
+    if !found {
+        if let Some(images) = &video.image {
+            // find thru unsorted image collection
+            if !images.is_empty() {
+                let desired = if cont.len() < 3 { 640 } else { 130 };
+                let mut idx_best = 0;
+                let mut wid_best = 0;
+                for (i, img) in images.iter().enumerate() {
+                    if img.width < desired && img.width > wid_best {
+                        idx_best = i;
+                        wid_best = img.width;
+                    }
+                }
+                if let Ok(uri) = storage.get_temp_file(&images[idx_best].url, "v").await {
+                    cont.push(Photo {
+                        text: String::new(),
+                        uri,
+                    });
+                }
+            }
+        }
+    }
+}
+
+async fn append_from_posted_photo(
+    cont: &mut Vec<Photo>,
+    posted_photo: &PostedPhoto,
+    storage: &Storage,
+) {
+    if cont.len() < 3 {
+        if let Ok(uri) = storage
+            .get_temp_file(posted_photo.photo_604.as_str(), "ppx")
+            .await
+        {
+            cont.push(Photo {
+                text: String::new(),
+                uri,
+            });
+        }
+    } else {
+        if let Ok(uri) = storage
+            .get_temp_file(posted_photo.photo_130.as_str(), "ppp")
+            .await
+        {
+            cont.push(Photo {
+                text: String::new(),
+                uri,
+            });
+        }
+    }
+}
+
 static PRIO_0: [&str; 7] = ["x", "r", "q", "x", "p", "o", "m"];
 static PRIO_N: [&str; 2] = ["o", "m"];
 
-async fn select_uri(src_photo: &NewsPhoto, idx: usize, storage: &Storage) -> Option<Photo> {
+async fn select_photo(src_photo: &NewsPhoto, idx: usize, storage: &Storage) -> Option<Photo> {
     let prio = match idx {
         0 | 1 => &PRIO_0[..],
         _ => &PRIO_N[..],
