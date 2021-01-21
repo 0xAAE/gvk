@@ -9,8 +9,22 @@
 //! in its turn produces NewsItemModel objects from underlying collection.
 use crate::storage::Storage;
 use crate::utils::local_from_timestamp;
-use rvk::objects::newsfeed::NewsFeed;
+use crate::vk_provider::constants::*;
+use rvk::objects::newsfeed::{Item as NewsItem, NewsFeed};
+use rvk::objects::photo::Photo as NewsPhoto;
+use std::fmt;
 use std::iter::{IntoIterator, Iterator};
+
+pub struct Photo {
+    pub uri: String,
+    pub text: String,
+}
+
+impl fmt::Display for Photo {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "photo {}", self.uri)
+    }
+}
 
 pub struct NewsItemModel {
     pub author: String,
@@ -18,6 +32,8 @@ pub struct NewsItemModel {
     pub itemtype: String,
     pub datetime: String,
     pub content: String,
+    // 0 - primary photo, 1-2 second row photos, 3.. - other photos
+    pub photos: Option<Vec<Photo>>,
 }
 
 pub struct NewsUpdate {
@@ -45,13 +61,18 @@ impl NewsUpdate {
         let items = if let Some(ref src_items) = newsfeed.items {
             let mut items = Vec::with_capacity(src_items.len());
             for src in src_items {
+                // some items to ignore
+                match src.type_.as_str() {
+                    NEWS_TYPE_WALL_PHOTO => continue,
+                    &_ => {}
+                }
                 // author & avatar
                 let mut avatar = String::new(); // empty if failed finding
                 let author = if src.source_id > 0 {
                     // author is user
                     if let Some(user) = users.iter().find(|u| u.id == src.source_id) {
                         if let Ok(filename) = storage
-                            .get_file(user.photo_50.as_ref().unwrap().as_str())
+                            .get_file(user.photo_50.as_ref().unwrap().as_str(), "")
                             .await
                         {
                             avatar = filename;
@@ -64,7 +85,7 @@ impl NewsUpdate {
                     // source is group, source_id is *negative* as defined in VK.com API doc
                     // see https://vk.com/dev/newsfeed.get description of source_id in description of items
                     if let Some(grp) = groups.iter().find(|g| g.id == -src.source_id) {
-                        if let Ok(filename) = storage.get_file(grp.photo_50.as_str()).await {
+                        if let Ok(filename) = storage.get_file(grp.photo_50.as_str(), "").await {
                             avatar = filename;
                         }
                         grp.name.clone()
@@ -72,6 +93,9 @@ impl NewsUpdate {
                         String::new()
                     }
                 };
+                // photos
+                let photos = extract_photos(&src, storage).await;
+                // compose and return model
                 items.push(NewsItemModel {
                     author,
                     avatar,
@@ -85,6 +109,7 @@ impl NewsUpdate {
                     } else {
                         String::new()
                     },
+                    photos,
                 })
             }
             //
@@ -94,6 +119,94 @@ impl NewsUpdate {
         };
         NewsUpdate { items }
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.items.is_empty()
+    }
+}
+
+async fn extract_photos(item: &NewsItem, storage: &Storage) -> Option<Vec<Photo>> {
+    let mut result = Vec::new();
+    // for photo types search in photos
+    match item.type_.as_str() {
+        NEWS_TYPE_PHOTO | NEWS_TYPE_PHOTO_TAG | NEWS_TYPE_WALL_PHOTO => {
+            if let Some(ref photoset) = item.photos {
+                if let Some(ref photos) = photoset.items {
+                    for src_photo in photos {
+                        if let Some(ref sizes) = src_photo.sizes {
+                            if !sizes.is_empty() {
+                                if let Some(res_photo) =
+                                    select_uri(&src_photo, result.len(), storage).await
+                                {
+                                    result.push(res_photo);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        &_ => {}
+    }
+    // for any type continue searching in attachments
+    if let Some(ref attachments) = item.attachments {
+        for attachemnt in attachments {
+            if let Some(ref src_photo) = attachemnt.photo {
+                if let Some(ref sizes) = src_photo.sizes {
+                    if !sizes.is_empty() {
+                        if let Some(res_photo) = select_uri(&src_photo, result.len(), storage).await
+                        {
+                            result.push(res_photo);
+                        }
+                    }
+                }
+            }
+            if let Some(ref posted_photo) = attachemnt.posted_photo {
+                if let Ok(uri) = storage
+                    .get_temp_file(posted_photo.photo_130.as_str(), "p")
+                    .await
+                {
+                    result.push(Photo {
+                        text: String::new(),
+                        uri,
+                    });
+                }
+            }
+        }
+    }
+
+    if !result.is_empty() {
+        Some(result)
+    } else {
+        None
+    }
+}
+
+static PRIO_0: [&str; 7] = ["x", "r", "q", "x", "p", "o", "m"];
+static PRIO_N: [&str; 2] = ["o", "m"];
+
+async fn select_uri(src_photo: &NewsPhoto, idx: usize, storage: &Storage) -> Option<Photo> {
+    let prio = match idx {
+        0 | 1 => &PRIO_0[..],
+        _ => &PRIO_N[..],
+    };
+    if let Some(sizes) = &src_photo.sizes {
+        for p in prio {
+            if let Some(size) = sizes.iter().find(|s| s.type_.as_str() == *p) {
+                if let Some(url) = &size.url {
+                    if let Ok(uri) = storage.get_temp_file(url, *p).await {
+                        let text = if let Some(val) = &src_photo.text {
+                            val.clone()
+                        } else {
+                            String::new()
+                        };
+                        return Some(Photo { uri, text });
+                    }
+                }
+            }
+        }
+    }
+    None
 }
 
 impl IntoIterator for NewsUpdate {

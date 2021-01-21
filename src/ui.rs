@@ -2,7 +2,10 @@ use crate::models::NewsUpdate;
 use crate::vk_provider::{AccessTokenProvider, AuthResponse, UserViewModel};
 use gio::prelude::*;
 use gtk::prelude::*;
-use gtk::{ApplicationWindow, Builder, Image, Label, ScrolledWindow, Stack};
+use gtk::{
+    AdjustmentExt, ApplicationWindow, Builder, ContainerExt, Image, Label, ListBoxExt,
+    ScrolledWindow, Stack, WidgetExt,
+};
 use std::cell::RefCell;
 use tokio::sync::{
     mpsc::{Receiver, Sender},
@@ -76,7 +79,6 @@ pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: Re
             let avatar: gtk::Image = builder
                 .get_object("news_item_avatar")
                 .expect("Couldn't get news_item_avatar");
-            //avatar.set_from_file(&item.avatar);
             item.bind_property("avatar", &avatar, "file")
                 .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
                 .build();
@@ -96,6 +98,88 @@ pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: Re
             item.bind_property("content", &news_item_content, "label")
                 .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
                 .build();
+
+            // photos
+            let image_0: gtk::Image = builder
+                .get_object("image_0")
+                .expect("Couldn't get image_0");
+            if test_property(&item.get_property("image0vis"), true) {
+                item.bind_property("image0", &image_0, "file")
+                    .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
+                    .build();
+            }
+            let image_1: gtk::Image = builder
+                .get_object("image_1")
+                .expect("Couldn't get image_1");
+            if test_property(&item.get_property("image1vis"), true) {
+                item.bind_property("image1", &image_1, "file")
+                    .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
+                    .build();
+            }
+            let image_2: gtk::Image = builder
+                .get_object("image_2")
+                .expect("Couldn't get image_2");
+            if test_property(&item.get_property("image2vis"), true) {
+                item.bind_property("image2", &image_2, "file")
+                    .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
+                    .build();
+            }
+            let image_3: gtk::Image = builder
+                .get_object("image_3")
+                .expect("Couldn't get image_3");
+            if test_property(&item.get_property("image3vis"), true) {
+                item.bind_property("image3", &image_3, "file")
+                    .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
+                    .build();
+            }
+            let image_4: gtk::Image = builder
+                .get_object("image_4")
+                .expect("Couldn't get image_4");
+            if test_property(&item.get_property("image4vis"), true) {
+                item.bind_property("image4", &image_4, "file")
+                    .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
+                    .build();
+            }
+            let image_5: gtk::Image = builder
+                .get_object("image_5")
+                .expect("Couldn't get image_5");
+            if test_property(&item.get_property("image5vis"), true) {
+                item.bind_property("image5", &image_5, "file")
+                    .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
+                    .build();
+            }
+            let image_6: gtk::Image = builder
+                .get_object("image_6")
+                .expect("Couldn't get image_6");
+            if test_property(&item.get_property("image6vis"), true) {
+                item.bind_property("image6", &image_6, "file")
+                    .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
+                    .build();
+            }
+            let image_7: gtk::Image = builder
+                .get_object("image_7")
+                .expect("Couldn't get image_7");
+            if test_property(&item.get_property("image7vis"), true) {
+                item.bind_property("image7", &image_7, "file")
+                    .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
+                    .build();
+            }
+            let image_8: gtk::Image = builder
+                .get_object("image_8")
+                .expect("Couldn't get image_8");
+            if test_property(&item.get_property("image8vis"), true) {
+                item.bind_property("image8", &image_8, "file")
+                    .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
+                    .build();
+            }
+            let image_9: gtk::Image = builder
+                .get_object("image_9")
+                .expect("Couldn't get image_9");
+            if test_property(&item.get_property("image9vis"), true) {
+                item.bind_property("image9", &image_9, "file")
+                    .flags(glib::BindingFlags::DEFAULT | glib::BindingFlags::SYNC_CREATE)
+                    .build();
+            }
 
             box_.add(&news_item_view);
             box_.show_all();
@@ -156,6 +240,7 @@ pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: Re
 fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: MessageReceiver) {
     let main_context = glib::MainContext::default();
     let future = async move {
+        let mut cnt_news = 0;
         while let Some(item) = rx.recv().await {
             match item {
                 Message::Auth(tx_response) => {
@@ -171,8 +256,32 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                     show_user_info(&ui_builder, &vm);
                 }
                 Message::News(update) => {
-                    for view_model in update.into_iter().rev() {
-                        model.append(&RowData::new(&view_model));
+                    if !update.is_empty() {
+                        let scroll_to_end = cnt_news == 0;
+                        for view_model in update.into_iter().rev() {
+                            model.append(&RowData::new(&view_model));
+                            cnt_news += 1;
+                        }
+                        if scroll_to_end && cnt_news > 0 {
+                            let news_list: gtk::ListBox = ui_builder
+                                .get_object("news_list")
+                                .expect("Couldn't get news_list");
+                            if let Some(news_adjustment) = news_list.get_adjustment() {
+                                // srcroll down the list
+                                let h = if let Some(ref last_row) =
+                                    news_list.get_row_at_index(cnt_news as i32 - 1)
+                                {
+                                    last_row.get_preferred_height().0
+                                } else {
+                                    0
+                                };
+                                let list_height_after = news_list.get_preferred_height();
+                                let pos = list_height_after.0 as f64;
+                                news_adjustment.set_upper(pos);
+                                news_adjustment.set_value(pos - h as f64);
+                                log::debug!("scroll news to {:?} for the first time", pos);
+                            }
+                        }
                     }
                 }
                 Message::OlderNews(update) => {
@@ -180,12 +289,27 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                     // so insert every next prior previous:
                     for view_model in update.into_iter() {
                         model.insert(0, &RowData::new(&view_model));
+                        cnt_news += 1;
                     }
                 }
             };
         }
     };
     main_context.spawn_local(future);
+}
+
+fn test_property<'t, T, E>(prop: &'t Result<glib::Value, E>, value: T) -> bool
+where
+    T: glib::value::FromValueOptional<'t> + PartialEq,
+{
+    if let Ok(glib_value) = prop {
+        if let Ok(prop) = glib_value.get::<T>() {
+            if let Some(val) = prop {
+                return val == value;
+            }
+        }
+    }
+    false
 }
 
 fn build_auth_view(ui_builder: &Builder, tx_response: AuthResponseSender) -> WebView {

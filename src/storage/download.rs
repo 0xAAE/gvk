@@ -28,7 +28,7 @@ impl fmt::Display for DownloadError {
     }
 }
 
-pub async fn file(uri: &str, local_dir: &str) -> Result<String, DownloadError> {
+pub async fn file(uri: &str, local_dir: &str, name_prefix: &str) -> Result<String, DownloadError> {
     if uri.is_empty() {
         return Err(DownloadError::Malformed);
     }
@@ -39,7 +39,7 @@ pub async fn file(uri: &str, local_dir: &str) -> Result<String, DownloadError> {
         .and_then(|segments| segments.last())
         .and_then(|name| if name.is_empty() { None } else { Some(name) })
         .unwrap_or("tmp.bin");
-    let pathname = local_dir.to_string() + "/" + name;
+    let pathname = local_dir.to_string() + format!("/{}", name_prefix).as_str() + name;
     let mut dest = match File::create(&pathname) {
         Ok(f) => f,
         Err(_) => return Err(DownloadError::CreateFile(pathname)),
@@ -47,7 +47,10 @@ pub async fn file(uri: &str, local_dir: &str) -> Result<String, DownloadError> {
     let content = response.bytes().await.map_err(|_| DownloadError::Content)?;
     let mut content = Cursor::new(content);
     match copy(&mut content, &mut dest) {
-        Ok(_) => Ok(pathname),
+        Ok(_) => {
+            log::debug!("{}", pathname);
+            Ok(pathname)
+        }
         Err(_) => Err(DownloadError::SaveFile(pathname)),
     }
 }

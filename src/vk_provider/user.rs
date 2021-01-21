@@ -40,7 +40,7 @@ impl User {
         } else {
             String::new()
         };
-        let image = if let Ok(s) = storage.get_file(uri.as_str()).await {
+        let image = if let Ok(s) = storage.get_file(uri.as_str(), "").await {
             s
         } else {
             String::new()
