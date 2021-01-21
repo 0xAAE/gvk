@@ -1,7 +1,7 @@
 // News item type
 
 // новые записи со стен
-//pub const NEWS_TYPE_POST: &str = "post";
+pub const NEWS_TYPE_POST: &str = "post";
 // новые фотографии
 pub const NEWS_TYPE_PHOTO: &str = "photo";
 // новые отметки на фотографиях
@@ -17,7 +17,7 @@ pub const NEWS_TYPE_WALL_PHOTO: &str = "wall_photo";
 // новые видеозаписи
 //pub const NEWS_TYPE_VIDEO: &str = "video";
 
-// Attachemnt type
+// attachment type
 
 // 1. Фотография (type = photo)
 //pub const ATTACH_TYPE_PHOTO: &str = "photo";

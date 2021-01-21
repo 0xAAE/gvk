@@ -180,6 +180,10 @@ impl Storage {
         }
     }
 
+    pub fn prepare_to_stop(&self) {
+        clear_dir(&self.temp_files);
+    }
+
     pub fn get_cache_dir(&self) -> &str {
         &self.cache_home
     }
