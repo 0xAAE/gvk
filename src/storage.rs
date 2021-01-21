@@ -1,5 +1,4 @@
 use crate::vk_provider::AuthResponse;
-use chrono::Local;
 use std::collections::HashMap;
 use std::env::vars_os;
 use std::fmt;
@@ -97,6 +96,8 @@ impl Storage {
                 temp_files.as_str()
             );
             temp_files = String::new();
+        } else {
+            clear_dir(temp_files.as_str());
         }
         // tune-up RVK tracing
         std::env::set_var("RVK_TRACE_DIR", cache_home.as_str());
@@ -246,6 +247,11 @@ impl Storage {
     ) -> Result<String, StorageError> {
         if uri.is_empty() {
             Err(StorageError::DownloadFile("name not set".into()))
+        } else if self.temp_files.is_empty() {
+            // error log has already been produced upon start
+            Err(StorageError::DownloadFile(
+                "cache directory is unavailable".into(),
+            ))
         } else {
             download::file(uri, self.temp_files.as_str(), name_prefix)
                 .await
@@ -295,5 +301,23 @@ impl Storage {
         let auth: AuthResponse =
             serde_json::from_str(&s).map_err(|_| StorageError::JsonDeserialize)?;
         Ok(auth)
+    }
+}
+
+fn clear_dir(dir: &str) {
+    if let Ok(list) = std::fs::read_dir(dir) {
+        let mut cnt: usize = 0;
+        for entry in list {
+            match entry {
+                Ok(item) => match std::fs::remove_file(item.path()) {
+                    Ok(_) => cnt += 1,
+                    Err(e) => log::error!("failed deleting file {:?}: {}", item.path(), e),
+                },
+                Err(e) => log::error!("error listing dir {}: {}", dir, e),
+            }
+        }
+        if cnt > 0 {
+            log::debug!("removed {} files in {}", cnt, dir);
+        }
     }
 }
