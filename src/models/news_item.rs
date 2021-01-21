@@ -61,6 +61,11 @@ impl NewsUpdate {
         let items = if let Some(ref src_items) = newsfeed.items {
             let mut items = Vec::with_capacity(src_items.len());
             for src in src_items {
+                // some items to ignore
+                match src.type_.as_str() {
+                    NEWS_TYPE_WALL_PHOTO => continue,
+                    &_ => {}
+                }
                 // author & avatar
                 let mut avatar = String::new(); // empty if failed finding
                 let author = if src.source_id > 0 {
