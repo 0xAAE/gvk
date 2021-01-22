@@ -12,7 +12,7 @@ use crate::utils::local_from_timestamp;
 use crate::vk_provider::constants::*;
 use rvk::objects::{
     attachment::PostedPhoto,
-    link::Link,
+    link::Link as NewsLink,
     newsfeed::{Item as NewsItem, NewsFeed},
     photo::Photo as NewsPhoto,
     video::Video,
@@ -31,14 +31,19 @@ impl fmt::Display for Photo {
     }
 }
 
+pub struct Link {
+    pub uri: String,
+    pub text: String,
+}
+
 pub struct NewsItemModel {
     pub author: String,
     pub avatar: String,
     pub itemtype: String,
     pub datetime: String,
     pub content: String,
-    // 0 - primary photo, 1-2 second row photos, 3.. - other photos
     pub photos: Option<Vec<Photo>>,
+    pub links: Option<Vec<Link>>,
 }
 
 pub struct NewsUpdate {
@@ -100,6 +105,8 @@ impl NewsUpdate {
                 };
                 // photos
                 let photos = extract_photos(&src, storage).await;
+                // links
+                let links = extract_links(&src).await;
                 // compose and return model
                 items.push(NewsItemModel {
                     author,
@@ -115,6 +122,7 @@ impl NewsUpdate {
                         String::new()
                     },
                     photos,
+                    links,
                 })
             }
             //
@@ -213,7 +221,60 @@ async fn extract_photos(item: &NewsItem, storage: &Storage) -> Option<Vec<Photo>
     }
 }
 
-async fn append_from_link(cont: &mut Vec<Photo>, link: &Link, storage: &Storage) {
+async fn extract_links(item: &NewsItem) -> Option<Vec<Link>> {
+    let mut result = Vec::new();
+    match item.type_.as_str() {
+        NEWS_TYPE_POST => {
+            if let Some(copy_history) = &item.copy_history {
+                for history_item in copy_history {
+                    // for any type continue searching in attachments (WallAttachment)
+                    if let Some(attachments) = &history_item.attachments {
+                        // history attachment might contain link
+                        for attachment in attachments {
+                            if let Some(src_link) = &attachment.link {
+                                append_link_model(&mut result, src_link);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        &_ => {}
+    }
+    // NewsAttachments might contain link
+    if let Some(attachments) = &item.attachments {
+        for attachment in attachments {
+            if let Some(link) = &attachment.link {
+                append_link_model(&mut result, link);
+            }
+        }
+    }
+
+    if !result.is_empty() {
+        Some(result)
+    } else {
+        None
+    }
+}
+
+fn append_link_model(cont: &mut Vec<Link>, link: &NewsLink) {
+    if link.url.is_empty() {
+        return;
+    }
+    let uri = format!(r#"<a href="{}">{}</a>"#, &link.url, &link.url);
+    let text = if let Some(desc) = &link.description {
+        desc.clone()
+    } else if !link.title.is_empty() {
+        link.title.clone()
+    } else if let Some(cap) = &link.caption {
+        cap.clone()
+    } else {
+        String::new()
+    };
+    cont.push(Link { uri, text });
+}
+
+async fn append_from_link(cont: &mut Vec<Photo>, link: &NewsLink, storage: &Storage) {
     if let Some(src_photo) = &link.photo {
         if let Some(mut res_photo) = select_photo(src_photo, cont.len(), storage).await {
             if res_photo.text.is_empty() {
@@ -259,7 +320,7 @@ async fn append_from_video(cont: &mut Vec<Photo>, video: &Video, storage: &Stora
         if let Some(images) = &video.image {
             // find thru unsorted image collection
             if !images.is_empty() {
-                let desired = if cont.len() < 3 { 640 } else { 130 };
+                let desired = 832;
                 let mut idx_best = 0;
                 let mut wid_best = 0;
                 for (i, img) in images.iter().enumerate() {
@@ -307,13 +368,13 @@ async fn append_from_posted_photo(
     }
 }
 
-static PRIO_0: [&str; 7] = ["x", "r", "q", "x", "p", "o", "m"];
-static PRIO_N: [&str; 2] = ["o", "m"];
+static PRIO_0: [&str; 8] = ["y", "x", "r", "q", "p", "o", "m", "s"];
+//static PRIO_N: [&str; 2] = ["o", "m"];
 
 async fn select_photo(src_photo: &NewsPhoto, idx: usize, storage: &Storage) -> Option<Photo> {
     let prio = match idx {
-        0 | 1 => &PRIO_0[..],
-        _ => &PRIO_N[..],
+        //0 | 1 => &PRIO_0[..],
+        _ => &PRIO_0[..],
     };
     if let Some(sizes) = &src_photo.sizes {
         for p in prio {
