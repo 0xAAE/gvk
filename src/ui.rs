@@ -161,28 +161,36 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                                 .expect("Couldn't get news_list");
                             if let Some(news_adjustment) = news_list.get_adjustment() {
                                 // srcroll down the list
-                                let h = if let Some(ref last_row) =
-                                    news_list.get_row_at_index(cnt_news as i32 - 1)
-                                {
-                                    last_row.get_preferred_height().0
-                                } else {
-                                    0
-                                };
-                                let list_height_after = news_list.get_preferred_height();
-                                let pos = list_height_after.0 as f64;
-                                news_adjustment.set_upper(pos);
-                                news_adjustment.set_value(pos - h as f64);
-                                log::debug!("scroll news to {:?} for the first time", pos);
+                                let new_height = news_list.get_preferred_height().1 as f64;
+                                news_adjustment.set_upper(new_height);
+                                let pos = new_height - news_adjustment.get_page_size();
+                                news_adjustment.set_value(pos);
+                                log::debug!(
+                                    "scroll news to {} of {} for the first time",
+                                    pos,
+                                    new_height
+                                );
                             }
                         }
                     }
                 }
                 Message::OlderNews(update) => {
+                    let news_list: gtk::ListBox = ui_builder
+                        .get_object("news_list")
+                        .expect("Couldn't get news_list");
+                    let stored_height = news_list.get_preferred_height().1;
                     // natural news order is from most recent to oldest,
-                    // so insert every next prior previous:
+                    // so insert every next prior previous i.e. always at 0 position:
                     for view_model in update.into_iter() {
                         model.insert(0, &RowData::new(&view_model));
                         cnt_news += 1;
+                    }
+                    if let Some(news_adjustment) = news_list.get_adjustment() {
+                        let new_height = news_list.get_preferred_height().1;
+                        // scroll to delta height to position of previous start item
+                        let pos = new_height as f64 - stored_height as f64;
+                        news_adjustment.set_value(pos);
+                        log::debug!("scroll news to {} after inserting older news", pos);
                     }
                 }
             };
