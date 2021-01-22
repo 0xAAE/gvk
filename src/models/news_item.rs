@@ -258,6 +258,10 @@ async fn extract_links(item: &NewsItem) -> Option<Vec<Link>> {
 }
 
 fn append_link_model(cont: &mut Vec<Link>, link: &NewsLink) {
+    if link.url.is_empty() {
+        return;
+    }
+    let uri = format!(r#"<a href="{}">{}</a>"#, &link.url, &link.url);
     let text = if let Some(desc) = &link.description {
         desc.clone()
     } else if !link.title.is_empty() {
@@ -267,10 +271,7 @@ fn append_link_model(cont: &mut Vec<Link>, link: &NewsLink) {
     } else {
         String::new()
     };
-    cont.push(Link {
-        uri: link.url.clone(),
-        text,
-    });
+    cont.push(Link { uri, text });
 }
 
 async fn append_from_link(cont: &mut Vec<Photo>, link: &NewsLink, storage: &Storage) {
