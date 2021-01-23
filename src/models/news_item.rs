@@ -261,7 +261,8 @@ fn append_link_model(cont: &mut Vec<Link>, link: &NewsLink) {
     if link.url.is_empty() {
         return;
     }
-    let uri = format!(r#"<a href="{}">{}</a>"#, &link.url, &link.url);
+    let url = glib::markup_escape_text(link.url.as_str()).to_string();
+    let uri = format!(r#"<a href="{}">{}</a>"#, &url, &url);
     let text = if let Some(desc) = &link.description {
         desc.clone()
     } else if !link.title.is_empty() {
@@ -473,5 +474,21 @@ mod tests {
             ),
             r#"<a href="https://www.gvk.com">https://www.gvk.com</a> <a href="https://gvk.com">https://gvk.com</a> <a href="http://www.gvk.com">http://www.gvk.com</a> <a href="http://gvk.com">http://gvk.com</a>"#
         );
+    }
+
+    #[test]
+    fn test_link_formatting() {
+        let src_url = "https://habr.com/ru/post/538874/?utm_campaign=538874&utm_source=habrahabr&utm_medium=rss";
+        let uri = format!(r#"<a href="{}">{}</a>"#, &src_url, &src_url);
+        let expected = r#"<a href="https://habr.com/ru/post/538874/?utm_campaign=538874&utm_source=habrahabr&utm_medium=rss">https://habr.com/ru/post/538874/?utm_campaign=538874&utm_source=habrahabr&utm_medium=rss</a>"#;
+        assert_eq!(uri, expected);
+
+        let uri = format!(
+            r#"<a href="{}">{}</a>"#,
+            &src_url,
+            glib::markup_escape_text(src_url).to_string()
+        );
+        let expected = r#"<a href="https://habr.com/ru/post/538874/?utm_campaign=538874&utm_source=habrahabr&utm_medium=rss">https://habr.com/ru/post/538874/?utm_campaign=538874&amp;utm_source=habrahabr&amp;utm_medium=rss</a>"#;
+        assert_eq!(uri, expected);
     }
 }
