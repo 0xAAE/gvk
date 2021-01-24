@@ -14,7 +14,7 @@ use rvk::objects::{
     attachment::PostedPhoto,
     link::Link as NewsLink,
     newsfeed::{Item as NewsItem, NewsFeed},
-    photo::Photo as NewsPhoto,
+    photo::{Photo as NewsPhoto, Size as PhotoSize},
     video::Video,
 };
 use std::fmt;
@@ -211,6 +211,22 @@ async fn extract_photos(item: &NewsItem, storage: &Storage) -> Option<Vec<Photo>
             if let Some(posted_photo) = &attachment.posted_photo {
                 append_from_posted_photo(&mut result, posted_photo, storage).await;
             }
+            // document
+            if let Some(doc) = &attachment.doc {
+                if let Some(preview) = &doc.preview {
+                    if let Some(photo) = &preview.photo {
+                        if let Some(uri) =
+                            select_photo_uri(&photo.sizes, result.len(), storage).await
+                        {
+                            let text = doc.title.clone();
+                            result.push(Photo {
+                                uri,
+                                text: process_text(&text),
+                            })
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -262,7 +278,7 @@ fn append_link_model(cont: &mut Vec<Link>, link: &NewsLink) {
         return;
     }
     let url = glib::markup_escape_text(link.url.as_str()).to_string();
-    let uri = format!(r#"<a href="{}">{}</a>"#, &url, &url);
+    let uri = process_text(&url);
     let text = if let Some(desc) = &link.description {
         desc.clone()
     } else if !link.title.is_empty() {
@@ -372,25 +388,37 @@ async fn append_from_posted_photo(
 static PRIO_0: [&str; 8] = ["y", "x", "r", "q", "p", "o", "m", "s"];
 //static PRIO_N: [&str; 2] = ["o", "m"];
 
-async fn select_photo(src_photo: &NewsPhoto, idx: usize, storage: &Storage) -> Option<Photo> {
+async fn select_photo_uri(sizes: &Vec<PhotoSize>, idx: usize, storage: &Storage) -> Option<String> {
     let prio = match idx {
         //0 | 1 => &PRIO_0[..],
         _ => &PRIO_0[..],
     };
-    if let Some(sizes) = &src_photo.sizes {
-        for p in prio {
-            if let Some(size) = sizes.iter().find(|s| s.type_.as_str() == *p) {
-                if let Some(url) = &size.url {
-                    if let Ok(uri) = storage.get_temp_file(url, *p).await {
-                        let text = if let Some(val) = &src_photo.text {
-                            val.clone()
-                        } else {
-                            String::new()
-                        };
-                        return Some(Photo { uri, text });
-                    }
-                }
+    for p in prio {
+        if let Some(size) = sizes.iter().find(|s| s.type_.as_str() == *p) {
+            let uri = if let Some(url) = &size.url {
+                url
+            } else if let Some(src) = &size.src {
+                src
+            } else {
+                continue;
+            };
+            if let Ok(uri) = storage.get_temp_file(uri, *p).await {
+                return Some(uri);
             }
+        }
+    }
+    None
+}
+
+async fn select_photo(src_photo: &NewsPhoto, idx: usize, storage: &Storage) -> Option<Photo> {
+    if let Some(sizes) = &src_photo.sizes {
+        if let Some(uri) = select_photo_uri(sizes, idx, storage).await {
+            let text = if let Some(val) = &src_photo.text {
+                val.clone()
+            } else {
+                String::new()
+            };
+            return Some(Photo { uri, text });
         }
     }
     None
