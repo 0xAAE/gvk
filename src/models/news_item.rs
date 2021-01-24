@@ -15,6 +15,7 @@ use rvk::objects::{
     link::Link as NewsLink,
     newsfeed::{Item as NewsItem, NewsFeed},
     photo::{Photo as NewsPhoto, Size as PhotoSize},
+    user::User,
     video::Video,
 };
 use std::fmt;
@@ -71,9 +72,47 @@ impl NewsUpdate {
         let items = if let Some(ref src_items) = newsfeed.items {
             let mut items = Vec::with_capacity(src_items.len());
             for src in src_items {
+                let mut friends_photos = None;
                 // some items to ignore
                 match src.type_.as_str() {
                     NEWS_TYPE_WALL_PHOTO => continue,
+                    NEWS_TYPE_FRIEND => {
+                        if let Some(friends) = &src.friends {
+                            if friends.count > 0 {
+                                if let Some(ids) = &friends.items {
+                                    // lookup friend id in profiles
+                                    let mut photos = Vec::new();
+                                    for profile in ids {
+                                        let mut friend_pic = String::new();
+                                        let friend_name = if let Some(user) =
+                                            users.iter().find(|u| u.id == profile.user_id)
+                                        {
+                                            if let Ok(filename) = storage
+                                                .get_file(get_max_photo(user).as_str(), "")
+                                                .await
+                                            {
+                                                friend_pic = filename;
+                                            }
+                                            user.first_name.clone() + " " + user.last_name.as_str()
+                                        } else {
+                                            String::new()
+                                        };
+                                        photos.push(Photo {
+                                            uri: friend_pic,
+                                            text: friend_name,
+                                        });
+                                    }
+                                    friends_photos = Some(photos);
+                                }
+                            } else {
+                                log::debug!("xero frians count in 'friend' type post");
+                            }
+                        } else {
+                            log::debug!("no friends info in 'friend' type post");
+                            // don't disply empty news item
+                            continue;
+                        }
+                    }
                     &_ => {}
                 }
                 // author & avatar
@@ -81,13 +120,12 @@ impl NewsUpdate {
                 let author = if src.source_id > 0 {
                     // author is user
                     if let Some(user) = users.iter().find(|u| u.id == src.source_id) {
-                        if let Ok(filename) = storage
-                            .get_file(user.photo_50.as_ref().unwrap().as_str(), "")
-                            .await
+                        if let Ok(filename) =
+                            storage.get_file(get_small_photo(user).as_str(), "").await
                         {
                             avatar = filename;
                         }
-                        user.last_name.clone() + " " + user.last_name.as_str()
+                        user.first_name.clone() + " " + user.last_name.as_str()
                     } else {
                         String::new()
                     }
@@ -104,7 +142,16 @@ impl NewsUpdate {
                     }
                 };
                 // photos
-                let photos = extract_photos(&src, storage).await;
+                let photos = if let Some(mut extracted) = extract_photos(&src, storage).await {
+                    if let Some(friends) = friends_photos {
+                        extracted.extend(friends);
+                        Some(extracted)
+                    } else {
+                        Some(extracted)
+                    }
+                } else {
+                    friends_photos
+                };
                 // links
                 let links = extract_links(&src).await;
                 // compose and return model
@@ -135,6 +182,30 @@ impl NewsUpdate {
 
     pub fn is_empty(&self) -> bool {
         self.items.is_empty()
+    }
+}
+
+fn get_max_photo(user: &User) -> String {
+    if let Some(photo) = &user.photo_400_orig {
+        photo.clone()
+    } else if let Some(photo) = &user.photo_200_orig {
+        photo.clone()
+    } else if let Some(photo) = &user.photo_200 {
+        photo.clone()
+    } else if let Some(photo) = &user.photo_100 {
+        photo.clone()
+    } else if let Some(photo) = &user.photo_50 {
+        photo.clone()
+    } else {
+        String::new()
+    }
+}
+
+fn get_small_photo(user: &User) -> String {
+    if let Some(photo) = &user.photo_50 {
+        photo.clone()
+    } else {
+        String::new()
     }
 }
 
