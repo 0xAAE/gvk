@@ -1,4 +1,4 @@
-use crate::models::NewsUpdate;
+use crate::models::{NewsUpdate, SourcesUpdate};
 use crate::storage::{SharedStorage, Storage};
 use crate::ui::{Message, Request};
 use rvk::APIClient;
@@ -161,7 +161,9 @@ pub fn run_with_own_runtime(
                     if let Some(items) = &news_feed.items {
                         log::debug!("got {} news items", items.len());
                     }
+                    // prepare news update
                     let update = NewsUpdate::new_async(&news_feed, &storage).await;
+                    // send news update
                     match tx_msg.try_send(Message::News(update)) {
                         Ok(_) => {}
                         Err(TrySendError::Full(_)) => {
@@ -172,6 +174,13 @@ pub fn run_with_own_runtime(
                             break;
                         }
                     }
+                    // prepare sources update
+                    let sources = SourcesUpdate::new_async(&news_feed, &storage).await;
+                    // send sources update
+                    log::debug!(
+                        "got {} news sources updates, ready to filter and send to UI",
+                        sources.items.len()
+                    );
                 }
                 if let Err(e) = storage.save_state_async().await {
                     log::warn!("saving storage state failed: {}", e);

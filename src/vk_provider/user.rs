@@ -51,6 +51,34 @@ impl User {
             status: self.data.status.as_ref().unwrap_or(&String::new()).clone(),
         }
     }
+
+    pub fn get_max_photo(user: &VKUser) -> String {
+        if let Some(photo) = &user.photo_400_orig {
+            photo.clone()
+        } else if let Some(photo) = &user.photo_200_orig {
+            photo.clone()
+        } else if let Some(photo) = &user.photo_200 {
+            photo.clone()
+        } else if let Some(photo) = &user.photo_100 {
+            photo.clone()
+        } else if let Some(photo) = &user.photo_50 {
+            photo.clone()
+        } else {
+            String::new()
+        }
+    }
+
+    pub fn get_small_photo(user: &VKUser) -> String {
+        if let Some(photo) = &user.photo_50 {
+            photo.clone()
+        } else {
+            String::new()
+        }
+    }
+
+    pub fn get_full_name(user: &VKUser) -> String {
+        user.first_name.clone() + " " + user.last_name.as_str()
+    }
 }
 
 impl fmt::Display for User {

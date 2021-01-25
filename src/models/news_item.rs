@@ -9,13 +9,13 @@
 //! in its turn produces NewsItemModel objects from underlying collection.
 use crate::storage::Storage;
 use crate::utils::local_from_timestamp;
+use crate::vk_provider;
 use crate::vk_provider::constants::*;
 use rvk::objects::{
     attachment::PostedPhoto,
     link::Link as NewsLink,
     newsfeed::{Item as NewsItem, NewsFeed},
     photo::{Photo as NewsPhoto, Size as PhotoSize},
-    user::User,
     video::Video,
 };
 use std::fmt;
@@ -88,12 +88,15 @@ impl NewsUpdate {
                                             users.iter().find(|u| u.id == profile.user_id)
                                         {
                                             if let Ok(filename) = storage
-                                                .get_file(get_max_photo(user).as_str(), "")
+                                                .get_file(
+                                                    vk_provider::User::get_max_photo(user).as_str(),
+                                                    "",
+                                                )
                                                 .await
                                             {
                                                 friend_pic = filename;
                                             }
-                                            user.first_name.clone() + " " + user.last_name.as_str()
+                                            vk_provider::User::get_full_name(&user)
                                         } else {
                                             String::new()
                                         };
@@ -120,12 +123,13 @@ impl NewsUpdate {
                 let author = if src.source_id > 0 {
                     // author is user
                     if let Some(user) = users.iter().find(|u| u.id == src.source_id) {
-                        if let Ok(filename) =
-                            storage.get_file(get_small_photo(user).as_str(), "").await
+                        if let Ok(filename) = storage
+                            .get_file(vk_provider::User::get_small_photo(user).as_str(), "")
+                            .await
                         {
                             avatar = filename;
                         }
-                        user.first_name.clone() + " " + user.last_name.as_str()
+                        vk_provider::User::get_full_name(user)
                     } else {
                         String::new()
                     }
@@ -182,30 +186,6 @@ impl NewsUpdate {
 
     pub fn is_empty(&self) -> bool {
         self.items.is_empty()
-    }
-}
-
-fn get_max_photo(user: &User) -> String {
-    if let Some(photo) = &user.photo_400_orig {
-        photo.clone()
-    } else if let Some(photo) = &user.photo_200_orig {
-        photo.clone()
-    } else if let Some(photo) = &user.photo_200 {
-        photo.clone()
-    } else if let Some(photo) = &user.photo_100 {
-        photo.clone()
-    } else if let Some(photo) = &user.photo_50 {
-        photo.clone()
-    } else {
-        String::new()
-    }
-}
-
-fn get_small_photo(user: &User) -> String {
-    if let Some(photo) = &user.photo_50 {
-        photo.clone()
-    } else {
-        String::new()
     }
 }
 

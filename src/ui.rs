@@ -122,7 +122,7 @@ pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: Re
     });
 
     // select visible right pane
-    show_right_pane(&builder, "page_view_news");
+    show_right_pane(&builder, "page_view_home");
 
     launch_msg_handler(news_item_model, builder, rx_msg);
 
@@ -240,7 +240,7 @@ fn build_auth_view(ui_builder: &Builder, tx_response: AuthResponseSender) -> Web
                             parent.remove(&webview);
                             // view news page
                             //todo: view previous page
-                            show_right_pane(&ui_builder, "page_view_news");
+                            show_right_pane(&ui_builder, "page_view_home");
                         }
                     }
                 }

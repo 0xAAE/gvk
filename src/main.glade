@@ -214,7 +214,7 @@ Author: 0xAAE
                         </child>
                         <child>
                           <object class="GtkLinkButton" id="menu_search">
-                            <property name="label" translatable="yes">serach</property>
+                            <property name="label" translatable="yes">search</property>
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                             <property name="receives-default">True</property>
@@ -413,31 +413,6 @@ Author: 0xAAE
             <property name="visible">True</property>
             <property name="can-focus">False</property>
             <child>
-              <object class="GtkScrolledWindow" id="view_news">
-                <property name="visible">True</property>
-                <property name="can-focus">True</property>
-                <property name="shadow-type">in</property>
-                <signal name="edge-reached" handler="news_edge_reached" swapped="no"/>
-                <child>
-                  <object class="GtkViewport" id="news_content">
-                    <property name="visible">True</property>
-                    <property name="can-focus">False</property>
-                    <child>
-                      <object class="GtkListBox" id="news_list">
-                        <property name="visible">True</property>
-                        <property name="can-focus">False</property>
-                        <property name="selection-mode">none</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="name">page_view_news</property>
-                <property name="title" translatable="yes">page_view_news</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkBox" id="view_auth">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -485,7 +460,67 @@ Author: 0xAAE
               </object>
               <packing>
                 <property name="name">page_view_auth</property>
-                <property name="title" translatable="yes">page_view_auth</property>
+                <property name="title" translatable="yes">Auth</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkBox" id="view_home">
+                <property name="visible">True</property>
+                <property name="can-focus">False</property>
+                <child>
+                  <object class="GtkScrolledWindow" id="view_news">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="shadow-type">in</property>
+                    <signal name="edge-reached" handler="news_edge_reached" swapped="no"/>
+                    <child>
+                      <object class="GtkViewport" id="news_content">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <child>
+                          <object class="GtkListBox" id="news_list">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                            <property name="selection-mode">none</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow" id="view_sources">
+                    <property name="visible">True</property>
+                    <property name="can-focus">True</property>
+                    <property name="shadow-type">in</property>
+                    <child>
+                      <object class="GtkViewport" id="sources_content">
+                        <property name="visible">True</property>
+                        <property name="can-focus">False</property>
+                        <child>
+                          <object class="GtkListBox" id="news_sources">
+                            <property name="visible">True</property>
+                            <property name="can-focus">False</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="name">page_view_home</property>
+                <property name="title" translatable="yes">Home</property>
                 <property name="position">1</property>
               </packing>
             </child>
