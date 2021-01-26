@@ -224,7 +224,7 @@ mod imp {
 
     // Basic declaration of our type for the GObject type system
     impl ObjectSubclass for RowData {
-        const NAME: &'static str = "RowData";
+        const NAME: &'static str = "NewsItemVM";
         type ParentType = glib::Object;
         type Instance = subclass::simple::InstanceStruct<Self>;
         type Class = subclass::simple::ClassStruct<Self>;
@@ -602,10 +602,13 @@ mod imp {
     }
 }
 
-// Public part of the RowData type. This behaves like a normal gtk-rs-style GObject
+// Public part of the NewsItemVM type. This behaves like a normal gtk-rs-style GObject
 // binding
 glib_wrapper! {
-    pub struct RowData(Object<subclass::simple::InstanceStruct<imp::RowData>, subclass::simple::ClassStruct<imp::RowData>, RowDataClass>);
+    pub struct NewsItemVM(
+        Object<subclass::simple::InstanceStruct<imp::RowData>,
+        subclass::simple::ClassStruct<imp::RowData>, NewsItemVMClass>
+    );
 
     match fn {
         get_type => || imp::RowData::get_type().to_glib(),
@@ -614,8 +617,8 @@ glib_wrapper! {
 
 // Constructor for new instances. This simply calls glib::Object::new() with
 // initial values for our two properties and then returns the new instance
-impl RowData {
-    pub fn new(model: &NewsItemModel) -> RowData {
+impl NewsItemVM {
+    pub fn new(model: &NewsItemModel) -> NewsItemVM {
         const MAX_IMAGES: usize = 10;
         let mut image_file: [String; MAX_IMAGES] = Default::default(); // [String::new(); MAX_IMAGES];
         let mut image_text: [String; MAX_IMAGES] = Default::default(); // [String::new(); MAX_IMAGES];

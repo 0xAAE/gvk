@@ -1,5 +1,5 @@
-use crate::models::NewsUpdate;
-use crate::vk_provider::{AccessTokenProvider, AuthResponse, UserViewModel};
+use crate::models::UserModel;
+use crate::vk_provider::{AccessTokenProvider, AuthResponse, NewsUpdate, SourcesUpdate};
 use gio::prelude::*;
 use gtk::prelude::*;
 use gtk::{
@@ -13,10 +13,13 @@ use tokio::sync::{
 };
 use webkit2gtk::{LoadEvent, WebContext, WebView, WebViewExt};
 
-use crate::view_models::RowData;
+use crate::view_models::NewsItemVM;
+use crate::view_models::NewsSourceVM;
+
 type AuthResponseSender = oneshot::Sender<AuthResponse>;
 
 mod news_list_box_row;
+mod sources_list_box_row;
 
 /// Communicating from VK provider to UI
 pub enum Message {
@@ -24,11 +27,13 @@ pub enum Message {
     /// to send back the response with access_token etc.
     Auth(AuthResponseSender),
     /// Updated own user info received
-    OwnInfo(UserViewModel),
+    OwnInfo(UserModel),
     /// New incoming message to display in the user's wall
     News(NewsUpdate),
     /// Older news to let user scroll back
     OlderNews(NewsUpdate),
+    /// Updating news sources, friends and groups
+    NewsSources(SourcesUpdate),
 }
 
 pub enum Request {
@@ -54,16 +59,29 @@ pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: Re
     window.set_application(Some(application));
 
     // list news
-    let news_item_model = gio::ListStore::new(RowData::static_type());
+    let news_item_model = gio::ListStore::new(NewsItemVM::static_type());
     let list_news: gtk::ListBox = builder
         .get_object("news_list")
-        .expect("Couldn't get list_news");
+        .expect("Couldn't get news_list widget");
     list_news.bind_model(
         Some(&news_item_model),
         clone!(@weak window => @default-panic, move |item| {
-
-            let item = item.downcast_ref::<RowData>().expect("Row data is of wrong type");
+            let item = item.downcast_ref::<NewsItemVM>().expect("News item view model is of wrong type");
             let box_ = news_list_box_row::build(item);
+            box_.upcast::<gtk::Widget>()
+        }),
+    );
+
+    // sources list
+    let sources_item_model = gio::ListStore::new(NewsSourceVM::static_type());
+    let list_sources: gtk::ListBox = builder
+        .get_object("news_sources")
+        .expect("Couldn't get news_sources widget");
+    list_sources.bind_model(
+        Some(&sources_item_model),
+        clone!(@weak window => @default-panic, move |item| {
+            let item = item.downcast_ref::<NewsSourceVM>().expect("News source view model is of wrong type");
+            let box_ = sources_list_box_row::build(item);
             box_.upcast::<gtk::Widget>()
         }),
     );
@@ -97,7 +115,8 @@ pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: Re
                                         let _ = tx_req_copy3.send(Request::NewsNext).await;
                                     });
                                 }
-                                _ => log::warn!("reached unreachable"),
+                                gtk::PositionType::Right | gtk::PositionType::Left => (),
+                                _ => log::warn!("reached unreachable {:?}", pos),
                             }
                         };
                     }
@@ -122,15 +141,27 @@ pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: Re
     });
 
     // select visible right pane
-    show_right_pane(&builder, "page_view_news");
+    show_right_pane(&builder, "page_view_home");
 
-    launch_msg_handler(news_item_model, builder, rx_msg);
+    launch_msg_handler(
+        BoundedModels {
+            news: news_item_model,
+            sources: sources_item_model,
+        },
+        builder,
+        rx_msg,
+    );
 
     window.show_all();
 }
 
 /// Spawns message handler as a task on the main event loop
-fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: MessageReceiver) {
+struct BoundedModels {
+    news: gio::ListStore,
+    sources: gio::ListStore,
+}
+
+fn launch_msg_handler(models: BoundedModels, ui_builder: Builder, mut rx: MessageReceiver) {
     let main_context = glib::MainContext::default();
     let future = async move {
         let mut cnt_news = 0;
@@ -152,7 +183,7 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                     if !update.is_empty() {
                         let scroll_to_end = cnt_news == 0;
                         for view_model in update.into_iter().rev() {
-                            model.append(&RowData::new(&view_model));
+                            models.news.append(&NewsItemVM::new(&view_model));
                             cnt_news += 1;
                         }
                         if scroll_to_end && cnt_news > 0 {
@@ -182,7 +213,7 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                     // natural news order is from most recent to oldest,
                     // so insert every next prior previous i.e. always at 0 position:
                     for view_model in update.into_iter() {
-                        model.insert(0, &RowData::new(&view_model));
+                        models.news.insert(0, &NewsItemVM::new(&view_model));
                         cnt_news += 1;
                     }
                     if let Some(news_adjustment) = news_list.get_adjustment() {
@@ -191,6 +222,12 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                         let pos = new_height as f64 - stored_height as f64;
                         news_adjustment.set_value(pos);
                         log::debug!("scroll news to {} after inserting older news", pos);
+                    }
+                }
+                Message::NewsSources(update) => {
+                    // update sources pane from incoming data
+                    for view_model in update.into_iter() {
+                        models.sources.append(&NewsSourceVM::new(&view_model));
                     }
                 }
             };
@@ -240,7 +277,7 @@ fn build_auth_view(ui_builder: &Builder, tx_response: AuthResponseSender) -> Web
                             parent.remove(&webview);
                             // view news page
                             //todo: view previous page
-                            show_right_pane(&ui_builder, "page_view_news");
+                            show_right_pane(&ui_builder, "page_view_home");
                         }
                     }
                 }
@@ -257,7 +294,7 @@ fn show_right_pane(ui_builder: &Builder, name: &str) {
     right_pane.set_visible_child_name(name);
 }
 
-fn show_user_info(ui_builder: &Builder, view_model: &UserViewModel) {
+fn show_user_info(ui_builder: &Builder, view_model: &UserModel) {
     if !view_model.image.is_empty() {
         let user_image: Image = ui_builder
             .get_object("user_image")
