@@ -35,6 +35,7 @@ impl SourcesUpdate {
                     String::new()
                 };
                 items.push(NewsSourceModel {
+                    id: user.id,
                     name,
                     avatar,
                     desc: "friend".to_string(),
@@ -69,6 +70,7 @@ impl SourcesUpdate {
                     String::new()
                 };
                 items.push(NewsSourceModel {
+                    id: group.id,
                     name,
                     avatar,
                     desc,

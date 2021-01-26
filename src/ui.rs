@@ -1,5 +1,5 @@
 use crate::models::UserModel;
-use crate::vk_provider::{AccessTokenProvider, AuthResponse, NewsUpdate};
+use crate::vk_provider::{AccessTokenProvider, AuthResponse, NewsUpdate, SourcesUpdate};
 use gio::prelude::*;
 use gtk::prelude::*;
 use gtk::{
@@ -29,6 +29,8 @@ pub enum Message {
     News(NewsUpdate),
     /// Older news to let user scroll back
     OlderNews(NewsUpdate),
+    /// Updating news sources, friends and groups
+    NewsSources(SourcesUpdate),
 }
 
 pub enum Request {
@@ -192,6 +194,10 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                         news_adjustment.set_value(pos);
                         log::debug!("scroll news to {} after inserting older news", pos);
                     }
+                }
+                Message::NewsSources(update) => {
+                    //todo: update sources pane from incoming data
+                    log::debug!("got {} news sources", update.items.len());
                 }
             };
         }

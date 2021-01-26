@@ -1,6 +1,8 @@
 use std::fmt;
 
+#[derive(Clone)]
 pub struct NewsSourceModel {
+    pub id: i64,
     pub name: String,    // RT
     pub avatar: String,  // url
     pub desc: String,    // Интернет СМИ
