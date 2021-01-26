@@ -96,7 +96,7 @@ Author: 0xAAE
   <object class="GtkApplicationWindow" id="main_window">
     <property name="can-focus">False</property>
     <property name="title" translatable="yes">GVK</property>
-    <property name="default-width">1024</property>
+    <property name="default-width">1200</property>
     <property name="default-height">768</property>
     <signal name="delete-event" handler="delete_main_window" swapped="no"/>
     <child>
@@ -464,9 +464,13 @@ Author: 0xAAE
               </packing>
             </child>
             <child>
-              <object class="GtkBox" id="view_home">
+              <placeholder/>
+            </child>
+            <child>
+              <object class="GtkPaned" id="view_home">
                 <property name="visible">True</property>
-                <property name="can-focus">False</property>
+                <property name="can-focus">True</property>
+                <property name="position">900</property>
                 <child>
                   <object class="GtkScrolledWindow" id="view_news">
                     <property name="visible">True</property>
@@ -488,9 +492,8 @@ Author: 0xAAE
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">True</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
+                    <property name="resize">False</property>
+                    <property name="shrink">True</property>
                   </packing>
                 </child>
                 <child>
@@ -513,16 +516,15 @@ Author: 0xAAE
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
+                    <property name="resize">True</property>
+                    <property name="shrink">True</property>
                   </packing>
                 </child>
               </object>
               <packing>
                 <property name="name">page_view_home</property>
                 <property name="title" translatable="yes">Home</property>
-                <property name="position">1</property>
+                <property name="position">2</property>
               </packing>
             </child>
           </object>
