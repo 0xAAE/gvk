@@ -6,8 +6,8 @@ pub fn build(item: &NewsSourceVM) -> gtk::ListBoxRow {
     let item_view_glade = include_str!("../source_item_view.glade");
     let builder = Builder::from_string(item_view_glade);
     let item_view: gtk::Box = builder
-        .get_object("source_item_view")
-        .expect("Couldn't get source_item_view");
+        .get_object("news_source_view")
+        .expect("Couldn't get news_source_view");
 
     let name: gtk::Label = builder
         .get_object("src_name")

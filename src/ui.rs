@@ -115,7 +115,8 @@ pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: Re
                                         let _ = tx_req_copy3.send(Request::NewsNext).await;
                                     });
                                 }
-                                _ => log::warn!("reached unreachable"),
+                                gtk::PositionType::Right | gtk::PositionType::Left => (),
+                                _ => log::warn!("reached unreachable {:?}", pos),
                             }
                         };
                     }
@@ -142,13 +143,25 @@ pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: Re
     // select visible right pane
     show_right_pane(&builder, "page_view_home");
 
-    launch_msg_handler(news_item_model, builder, rx_msg);
+    launch_msg_handler(
+        BoundedModels {
+            news: news_item_model,
+            sources: sources_item_model,
+        },
+        builder,
+        rx_msg,
+    );
 
     window.show_all();
 }
 
 /// Spawns message handler as a task on the main event loop
-fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: MessageReceiver) {
+struct BoundedModels {
+    news: gio::ListStore,
+    sources: gio::ListStore,
+}
+
+fn launch_msg_handler(models: BoundedModels, ui_builder: Builder, mut rx: MessageReceiver) {
     let main_context = glib::MainContext::default();
     let future = async move {
         let mut cnt_news = 0;
@@ -170,7 +183,7 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                     if !update.is_empty() {
                         let scroll_to_end = cnt_news == 0;
                         for view_model in update.into_iter().rev() {
-                            model.append(&NewsItemVM::new(&view_model));
+                            models.news.append(&NewsItemVM::new(&view_model));
                             cnt_news += 1;
                         }
                         if scroll_to_end && cnt_news > 0 {
@@ -200,7 +213,7 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                     // natural news order is from most recent to oldest,
                     // so insert every next prior previous i.e. always at 0 position:
                     for view_model in update.into_iter() {
-                        model.insert(0, &NewsItemVM::new(&view_model));
+                        models.news.insert(0, &NewsItemVM::new(&view_model));
                         cnt_news += 1;
                     }
                     if let Some(news_adjustment) = news_list.get_adjustment() {
@@ -214,7 +227,7 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                 Message::NewsSources(update) => {
                     // update sources pane from incoming data
                     for view_model in update.into_iter() {
-                        model.insert(0, &NewsSourceVM::new(&view_model));
+                        models.sources.append(&NewsSourceVM::new(&view_model));
                     }
                 }
             };

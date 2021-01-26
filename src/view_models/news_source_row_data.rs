@@ -130,10 +130,13 @@ mod imp {
     }
 }
 
-// Public part of the RowData type. This behaves like a normal gtk-rs-style GObject
+// Public part of the NewsSourceVM type. This behaves like a normal gtk-rs-style GObject
 // binding
 glib_wrapper! {
-    pub struct RowData(Object<subclass::simple::InstanceStruct<imp::RowData>, subclass::simple::ClassStruct<imp::RowData>, RowDataClass>);
+    pub struct NewsSourceVM(
+        Object<subclass::simple::InstanceStruct<imp::RowData>,
+        subclass::simple::ClassStruct<imp::RowData>, NewsSourceVMClass>
+    );
 
     match fn {
         get_type => || imp::RowData::get_type().to_glib(),
@@ -142,8 +145,8 @@ glib_wrapper! {
 
 // Constructor for new instances. This simply calls glib::Object::new() with
 // initial values for our two properties and then returns the new instance
-impl RowData {
-    pub fn new(model: &NewsSourceModel) -> RowData {
+impl NewsSourceVM {
+    pub fn new(model: &NewsSourceModel) -> NewsSourceVM {
         glib::Object::new(
             Self::static_type(),
             &[

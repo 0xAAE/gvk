@@ -12,9 +12,7 @@
         <property name="can-focus">False</property>
         <property name="label" translatable="yes">name</property>
         <property name="justify">center</property>
-        <attributes>
-          <attribute name="weight" value="bold"/>
-        </attributes>
+        <property name="wrap">True</property>
       </object>
       <packing>
         <property name="expand">False</property>
@@ -39,6 +37,7 @@
         <property name="can-focus">False</property>
         <property name="label" translatable="yes">desc</property>
         <property name="justify">center</property>
+        <property name="wrap">True</property>
         <attributes>
           <attribute name="style" value="italic"/>
         </attributes>
@@ -56,6 +55,7 @@
         <property name="label" translatable="yes">uri</property>
         <property name="use-markup">True</property>
         <property name="justify">center</property>
+        <property name="ellipsize">end</property>
       </object>
       <packing>
         <property name="expand">False</property>
@@ -68,6 +68,7 @@
         <property name="visible">True</property>
         <property name="can-focus">False</property>
         <property name="label" translatable="yes">comment</property>
+        <property name="wrap">True</property>
       </object>
       <packing>
         <property name="expand">False</property>

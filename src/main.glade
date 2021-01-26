@@ -498,6 +498,7 @@ Author: 0xAAE
                     <property name="visible">True</property>
                     <property name="can-focus">True</property>
                     <property name="shadow-type">in</property>
+                    <property name="min-content-width">140</property>
                     <child>
                       <object class="GtkViewport" id="sources_content">
                         <property name="visible">True</property>
