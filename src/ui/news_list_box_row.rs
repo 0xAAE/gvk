@@ -1,7 +1,6 @@
 use super::*;
-//use crate::view_models::RowData;
 
-pub fn build(item: &RowData) -> gtk::ListBoxRow {
+pub fn build(item: &NewsItemVM) -> gtk::ListBoxRow {
     let box_ = gtk::ListBoxRow::new();
 
     let news_item_view_glade = include_str!("../news_item_view.glade");

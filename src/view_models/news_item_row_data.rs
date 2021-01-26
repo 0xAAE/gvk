@@ -224,7 +224,7 @@ mod imp {
 
     // Basic declaration of our type for the GObject type system
     impl ObjectSubclass for RowData {
-        const NAME: &'static str = "RowData";
+        const NAME: &'static str = "NewsItemVM";
         type ParentType = glib::Object;
         type Instance = subclass::simple::InstanceStruct<Self>;
         type Class = subclass::simple::ClassStruct<Self>;

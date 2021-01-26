@@ -3,6 +3,7 @@ use crate::storage::Storage;
 use crate::utils::local_from_timestamp;
 use crate::vk_provider;
 use rvk::objects::newsfeed::NewsFeed;
+use std::iter::IntoIterator;
 
 pub struct SourcesUpdate {
     pub items: Vec<NewsSourceModel>,
@@ -81,5 +82,14 @@ impl SourcesUpdate {
         }
         // construct sources items
         SourcesUpdate { items }
+    }
+}
+
+impl IntoIterator for SourcesUpdate {
+    type Item = NewsSourceModel;
+    type IntoIter = std::vec::IntoIter<NewsSourceModel>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.items.into_iter()
     }
 }

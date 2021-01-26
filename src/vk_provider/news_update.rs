@@ -19,7 +19,7 @@ use rvk::objects::{
     photo::{Photo as NewsPhoto, Size as PhotoSize},
     video::Video,
 };
-use std::iter::{IntoIterator, Iterator};
+use std::iter::IntoIterator;
 
 pub struct NewsUpdate {
     items: Vec<NewsItemModel>,

@@ -13,10 +13,13 @@ use tokio::sync::{
 };
 use webkit2gtk::{LoadEvent, WebContext, WebView, WebViewExt};
 
-use crate::view_models::RowData;
+use crate::view_models::NewsItemVM;
+use crate::view_models::NewsSourceVM;
+
 type AuthResponseSender = oneshot::Sender<AuthResponse>;
 
 mod news_list_box_row;
+mod sources_list_box_row;
 
 /// Communicating from VK provider to UI
 pub enum Message {
@@ -56,16 +59,29 @@ pub fn build(application: &gtk::Application, rx_msg: MessageReceiver, tx_req: Re
     window.set_application(Some(application));
 
     // list news
-    let news_item_model = gio::ListStore::new(RowData::static_type());
+    let news_item_model = gio::ListStore::new(NewsItemVM::static_type());
     let list_news: gtk::ListBox = builder
         .get_object("news_list")
-        .expect("Couldn't get list_news");
+        .expect("Couldn't get news_list widget");
     list_news.bind_model(
         Some(&news_item_model),
         clone!(@weak window => @default-panic, move |item| {
-
-            let item = item.downcast_ref::<RowData>().expect("Row data is of wrong type");
+            let item = item.downcast_ref::<NewsItemVM>().expect("News item view model is of wrong type");
             let box_ = news_list_box_row::build(item);
+            box_.upcast::<gtk::Widget>()
+        }),
+    );
+
+    // sources list
+    let sources_item_model = gio::ListStore::new(NewsSourceVM::static_type());
+    let list_sources: gtk::ListBox = builder
+        .get_object("news_sources")
+        .expect("Couldn't get news_sources widget");
+    list_sources.bind_model(
+        Some(&sources_item_model),
+        clone!(@weak window => @default-panic, move |item| {
+            let item = item.downcast_ref::<NewsSourceVM>().expect("News source view model is of wrong type");
+            let box_ = sources_list_box_row::build(item);
             box_.upcast::<gtk::Widget>()
         }),
     );
@@ -154,7 +170,7 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                     if !update.is_empty() {
                         let scroll_to_end = cnt_news == 0;
                         for view_model in update.into_iter().rev() {
-                            model.append(&RowData::new(&view_model));
+                            model.append(&NewsItemVM::new(&view_model));
                             cnt_news += 1;
                         }
                         if scroll_to_end && cnt_news > 0 {
@@ -184,7 +200,7 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                     // natural news order is from most recent to oldest,
                     // so insert every next prior previous i.e. always at 0 position:
                     for view_model in update.into_iter() {
-                        model.insert(0, &RowData::new(&view_model));
+                        model.insert(0, &NewsItemVM::new(&view_model));
                         cnt_news += 1;
                     }
                     if let Some(news_adjustment) = news_list.get_adjustment() {
@@ -196,8 +212,10 @@ fn launch_msg_handler(model: gio::ListStore, ui_builder: Builder, mut rx: Messag
                     }
                 }
                 Message::NewsSources(update) => {
-                    //todo: update sources pane from incoming data
-                    log::debug!("got {} news sources", update.items.len());
+                    // update sources pane from incoming data
+                    for view_model in update.into_iter() {
+                        model.insert(0, &NewsSourceVM::new(&view_model));
+                    }
                 }
             };
         }
