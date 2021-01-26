@@ -1,4 +1,3 @@
-use crate::models::{NewsUpdate, SourcesUpdate};
 use crate::storage::{SharedStorage, Storage};
 use crate::ui::{Message, Request};
 use rvk::APIClient;
@@ -17,9 +16,13 @@ mod account;
 pub use account::{Account, AccountProvider};
 pub mod constants;
 mod user;
-pub use user::{User, UserViewModel};
-mod newsfeed;
-pub use newsfeed::NewsProvider;
+pub use user::User;
+mod news_provider;
+pub use news_provider::NewsProvider;
+mod news_update;
+pub use news_update::NewsUpdate;
+mod sources_update;
+pub use sources_update::SourcesUpdate;
 
 type MessageSender = Sender<Message>;
 type RequestReceiver = Receiver<Request>;

@@ -1,5 +1,5 @@
-use crate::models::NewsUpdate;
-use crate::vk_provider::{AccessTokenProvider, AuthResponse, UserViewModel};
+use crate::models::UserModel;
+use crate::vk_provider::{AccessTokenProvider, AuthResponse, NewsUpdate};
 use gio::prelude::*;
 use gtk::prelude::*;
 use gtk::{
@@ -24,7 +24,7 @@ pub enum Message {
     /// to send back the response with access_token etc.
     Auth(AuthResponseSender),
     /// Updated own user info received
-    OwnInfo(UserViewModel),
+    OwnInfo(UserModel),
     /// New incoming message to display in the user's wall
     News(NewsUpdate),
     /// Older news to let user scroll back
@@ -257,7 +257,7 @@ fn show_right_pane(ui_builder: &Builder, name: &str) {
     right_pane.set_visible_child_name(name);
 }
 
-fn show_user_info(ui_builder: &Builder, view_model: &UserViewModel) {
+fn show_user_info(ui_builder: &Builder, view_model: &UserModel) {
     if !view_model.image.is_empty() {
         let user_image: Image = ui_builder
             .get_object("user_image")
