@@ -1,4 +1,3 @@
-use crate::models::NewsUpdate;
 use crate::storage::{SharedStorage, Storage};
 use crate::ui::{Message, Request};
 use rvk::APIClient;
@@ -17,9 +16,15 @@ mod account;
 pub use account::{Account, AccountProvider};
 pub mod constants;
 mod user;
-pub use user::{User, UserViewModel};
-mod newsfeed;
-pub use newsfeed::NewsProvider;
+pub use user::User;
+mod news_provider;
+pub use news_provider::NewsProvider;
+mod news_update;
+pub use news_update::NewsUpdate;
+mod sources_update;
+pub use sources_update::SourcesUpdate;
+mod sources_manager;
+use sources_manager::SourcesManager;
 
 type MessageSender = Sender<Message>;
 type RequestReceiver = Receiver<Request>;
@@ -104,10 +109,12 @@ pub fn run_with_own_runtime(
                 log::error!("failed updating user info, {}", e);
             }
             let news = Arc::new(NewsProvider::new());
+            let news_sources = Arc::new(SourcesManager::new());
 
             // start task handling rx_req
             let vk_api_copy = vk_api.clone();
             let news_copy = news.clone();
+            let news_sources_copy = news_sources.clone();
             let storage_copy = storage.clone();
             let tx_msg_copy = tx_msg.clone();
             tokio::spawn(async move {
@@ -128,13 +135,15 @@ pub fn run_with_own_runtime(
                                     }
                                     let update =
                                         NewsUpdate::new_async(&news_feed, &storage_copy).await;
-                                    match tx_msg_copy.try_send(Message::OlderNews(update)) {
-                                        Ok(_) => {}
-                                        Err(TrySendError::Full(_)) => {
-                                            log::warn!("data is being produced too fast for UI");
-                                        }
-                                        Err(TrySendError::Closed(_)) => {
-                                            log::info!("UI has stopped, stopping also");
+                                    if !do_send(&tx_msg_copy, Message::OlderNews(update)) {
+                                        break;
+                                    }
+                                    // prepare sources update
+                                    if let Some(new_items) = news_sources_copy.add_new_sources(
+                                        SourcesUpdate::new_async(&news_feed, &storage_copy).await,
+                                    ) {
+                                        // send sources update
+                                        if !do_send(&tx_msg_copy, Message::NewsSources(new_items)) {
                                             break;
                                         }
                                     }
@@ -161,14 +170,18 @@ pub fn run_with_own_runtime(
                     if let Some(items) = &news_feed.items {
                         log::debug!("got {} news items", items.len());
                     }
+                    // prepare news update
                     let update = NewsUpdate::new_async(&news_feed, &storage).await;
-                    match tx_msg.try_send(Message::News(update)) {
-                        Ok(_) => {}
-                        Err(TrySendError::Full(_)) => {
-                            log::warn!("data is being produced too fast for UI");
-                        }
-                        Err(TrySendError::Closed(_)) => {
-                            log::info!("UI has stopped, also stopping");
+                    // send news update
+                    if !do_send(&tx_msg, Message::News(update)) {
+                        break;
+                    }
+                    // prepare sources update
+                    if let Some(new_items) = news_sources
+                        .add_new_sources(SourcesUpdate::new_async(&news_feed, &storage).await)
+                    {
+                        // send sources update
+                        if !do_send(&tx_msg, Message::NewsSources(new_items)) {
                             break;
                         }
                     }
@@ -189,4 +202,19 @@ pub fn run_with_own_runtime(
         }
         log::info!("main worker has stopped");
     });
+}
+
+fn do_send(tx: &MessageSender, msg: Message) -> bool {
+    // send sources update
+    match tx.try_send(msg) {
+        Ok(_) => true,
+        Err(TrySendError::Full(_)) => {
+            log::warn!("data is being produced too fast for UI");
+            true
+        }
+        Err(TrySendError::Closed(_)) => {
+            log::info!("UI has stopped, also stopping");
+            false
+        }
+    }
 }

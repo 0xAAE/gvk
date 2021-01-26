@@ -9,7 +9,7 @@ pub const NEWS_TYPE_PHOTO_TAG: &str = "photo_tag";
 // новые фотографии на стенах
 pub const NEWS_TYPE_WALL_PHOTO: &str = "wall_photo";
 // новые друзья
-//pub const NEWS_TYPE_FRIEND: &str = "friend";
+pub const NEWS_TYPE_FRIEND: &str = "friend";
 // новые заметки
 //pub const NEWS_TYPE_NOTE: &str = "note";
 // записи сообществ и друзей, содержащие аудиозаписи, а также новые аудиозаписи, добавленные ими

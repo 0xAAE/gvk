@@ -16,7 +16,7 @@ mod view_models;
 mod vk_provider;
 
 fn main() {
-    Builder::from_env(Env::default().default_filter_or("debug"))
+    Builder::from_env(Env::default().default_filter_or("debug,reqwest=info"))
         .target(Target::Stdout)
         .format_timestamp(Some(TimestampPrecision::Seconds))
         .init();
