@@ -9,6 +9,8 @@ use tokio::sync::{
 };
 use tokio::time::{sleep, Duration};
 
+pub const URI_BASE: &str = "https://vk.com/";
+
 mod access_token_provider;
 pub use access_token_provider::AccessTokenProvider;
 pub use access_token_provider::AuthResponse;

@@ -1,10 +1,10 @@
 use super::SourcesUpdate;
-use crate::models::NewsSourceModel;
+use crate::models::ActorModel;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
 pub struct SourcesManager {
-    pub items: Mutex<HashMap<i64, NewsSourceModel>>,
+    pub items: Mutex<HashMap<i64, ActorModel>>,
 }
 
 impl SourcesManager {

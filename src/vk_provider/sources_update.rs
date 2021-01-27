@@ -1,4 +1,4 @@
-use crate::models::NewsSourceModel;
+use crate::models::ActorModel;
 use crate::storage::Storage;
 use crate::utils::local_from_timestamp;
 use crate::vk_provider;
@@ -6,7 +6,7 @@ use rvk::objects::newsfeed::NewsFeed;
 use std::iter::IntoIterator;
 
 pub struct SourcesUpdate {
-    pub items: Vec<NewsSourceModel>,
+    pub items: Vec<ActorModel>,
 }
 
 impl SourcesUpdate {
@@ -35,18 +35,18 @@ impl SourcesUpdate {
                 } else {
                     String::new()
                 };
-                let uri = if let Some(screen_name) = &user.screen_name {
+                let rel_uri = if let Some(screen_name) = &user.screen_name {
                     screen_name.clone()
                 } else {
                     String::new()
                 };
-                items.push(NewsSourceModel {
+                items.push(ActorModel {
                     id: user.id,
                     name,
                     avatar,
                     desc: "profile".to_string(),
                     comment,
-                    uri,
+                    rel_uri,
                 });
             }
         }
@@ -80,14 +80,13 @@ impl SourcesUpdate {
                 } else {
                     String::new()
                 };
-                let uri = group.screen_name.clone();
-                items.push(NewsSourceModel {
+                items.push(ActorModel {
                     id: group.id,
                     name,
                     avatar,
                     desc,
                     comment,
-                    uri,
+                    rel_uri: group.screen_name.clone(),
                 });
             }
         }
@@ -97,8 +96,8 @@ impl SourcesUpdate {
 }
 
 impl IntoIterator for SourcesUpdate {
-    type Item = NewsSourceModel;
-    type IntoIter = std::vec::IntoIter<NewsSourceModel>;
+    type Item = ActorModel;
+    type IntoIter = std::vec::IntoIter<ActorModel>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.items.into_iter()

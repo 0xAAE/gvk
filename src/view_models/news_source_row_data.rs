@@ -3,7 +3,7 @@
 // (!) Store any property in a RefCell to allow for interior mutability
 // Properties are exposed via normal GObject properties. This allows us to use property
 // bindings below to bind the values with what widgets display in the UI
-use crate::models::NewsSourceModel;
+use crate::models::ActorModel;
 use gio::prelude::*;
 use glib::subclass;
 use glib::subclass::prelude::*;
@@ -146,14 +146,14 @@ glib_wrapper! {
 // Constructor for new instances. This simply calls glib::Object::new() with
 // initial values for our two properties and then returns the new instance
 impl NewsSourceVM {
-    pub fn new(model: &NewsSourceModel) -> NewsSourceVM {
+    pub fn new(model: &ActorModel) -> NewsSourceVM {
         glib::Object::new(
             Self::static_type(),
             &[
                 ("name", &model.name),
                 ("avatar", &model.avatar),
                 ("desc", &model.desc),
-                ("uri", &model.uri),
+                ("uri", &model.rel_uri),
                 ("comment", &model.comment),
             ],
         )
