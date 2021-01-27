@@ -1,4 +1,4 @@
-use crate::vk_provider::AuthResponse;
+use crate::vk_provider::{AuthResponse, CLEAR_TEMP_ON_EXIT, CLEAR_TEMP_ON_START};
 use std::collections::HashMap;
 use std::env::vars_os;
 use std::fmt;
@@ -97,7 +97,9 @@ impl Storage {
             );
             temp_files = String::new();
         } else {
-            clear_dir(temp_files.as_str());
+            if CLEAR_TEMP_ON_START {
+                clear_dir(temp_files.as_str());
+            }
         }
         // tune-up RVK tracing
         std::env::set_var("RVK_TRACE_DIR", cache_home.as_str());
@@ -181,7 +183,9 @@ impl Storage {
     }
 
     pub fn prepare_to_stop(&self) {
-        clear_dir(&self.temp_files);
+        if CLEAR_TEMP_ON_EXIT {
+            clear_dir(&self.temp_files);
+        }
     }
 
     pub fn get_cache_dir(&self) -> &str {
@@ -257,6 +261,13 @@ impl Storage {
                 "cache directory is unavailable".into(),
             ))
         } else {
+            if let Some(filename) = download::get_file_name(uri) {
+                let pathname = format!("{}/{}{}", self.temp_files, name_prefix, filename);
+                if std::path::Path::new(&pathname).exists() {
+                    log::debug!("temp file already exists: {}", pathname.as_str());
+                    return Ok(pathname);
+                }
+            }
             download::file(uri, self.temp_files.as_str(), name_prefix)
                 .await
                 .map_err(|e| {

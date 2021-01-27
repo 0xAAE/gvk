@@ -1,3 +1,4 @@
+use reqwest::Url;
 use std::fmt;
 use std::fs::File;
 use std::io::copy;
@@ -25,6 +26,22 @@ impl fmt::Display for DownloadError {
             DownloadError::CreateFile(name) => write!(f, "failed creating file {}", name),
             DownloadError::SaveFile(name) => write!(f, "failed writing file {}", name),
         }
+    }
+}
+
+pub fn get_file_name(uri: &str) -> Option<String> {
+    if let Ok(url) = Url::parse(uri) {
+        url.path_segments()
+            .and_then(|segments| segments.last())
+            .and_then(|name| {
+                if name.is_empty() {
+                    None
+                } else {
+                    Some(name.to_string())
+                }
+            })
+    } else {
+        None
     }
 }
 
