@@ -186,7 +186,7 @@ Author: 0xAAE
                             <property name="use-underline">True</property>
                             <property name="image-position">top</property>
                             <property name="always-show-image">True</property>
-                            <property name="uri">http://glade.gnome.org</property>
+                            <property name="uri">https://vk.com/feed</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -204,7 +204,7 @@ Author: 0xAAE
                             <property name="relief">none</property>
                             <property name="image-position">top</property>
                             <property name="always-show-image">True</property>
-                            <property name="uri">http://glade.gnome.org</property>
+                            <property name="uri">https://vk.com/im</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -222,7 +222,7 @@ Author: 0xAAE
                             <property name="relief">none</property>
                             <property name="image-position">top</property>
                             <property name="always-show-image">True</property>
-                            <property name="uri">http://glade.gnome.org</property>
+                            <property name="uri">https://vk.com/search</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -240,7 +240,7 @@ Author: 0xAAE
                             <property name="relief">none</property>
                             <property name="image-position">top</property>
                             <property name="always-show-image">True</property>
-                            <property name="uri">http://glade.gnome.org</property>
+                            <property name="uri">https://vk.com/friends</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -258,7 +258,7 @@ Author: 0xAAE
                             <property name="relief">none</property>
                             <property name="image-position">top</property>
                             <property name="always-show-image">True</property>
-                            <property name="uri">http://glade.gnome.org</property>
+                            <property name="uri">https://vk.com/groups</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -276,7 +276,7 @@ Author: 0xAAE
                             <property name="relief">none</property>
                             <property name="image-position">top</property>
                             <property name="always-show-image">True</property>
-                            <property name="uri">http://glade.gnome.org</property>
+                            <property name="uri">https://vk.com/audios</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -294,7 +294,7 @@ Author: 0xAAE
                             <property name="relief">none</property>
                             <property name="image-position">top</property>
                             <property name="always-show-image">True</property>
-                            <property name="uri">http://glade.gnome.org</property>
+                            <property name="uri">https://vk.com/video</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -303,8 +303,8 @@ Author: 0xAAE
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkLinkButton" id="menu_stickers">
-                            <property name="label" translatable="yes">stickers</property>
+                          <object class="GtkLinkButton" id="menu_clips">
+                            <property name="label" translatable="yes">clips</property>
                             <property name="visible">True</property>
                             <property name="can-focus">True</property>
                             <property name="receives-default">True</property>
@@ -312,7 +312,7 @@ Author: 0xAAE
                             <property name="relief">none</property>
                             <property name="image-position">top</property>
                             <property name="always-show-image">True</property>
-                            <property name="uri">http://glade.gnome.org</property>
+                            <property name="uri">https://vk.com/clips</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -330,7 +330,7 @@ Author: 0xAAE
                             <property name="relief">none</property>
                             <property name="image-position">top</property>
                             <property name="always-show-image">True</property>
-                            <property name="uri">http://glade.gnome.org</property>
+                            <property name="uri">https://vk.com/dev/objects/video</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -348,7 +348,7 @@ Author: 0xAAE
                             <property name="relief">none</property>
                             <property name="image-position">top</property>
                             <property name="always-show-image">True</property>
-                            <property name="uri">http://glade.gnome.org</property>
+                            <property name="uri">https://vk.com/dev/podcasts</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -366,7 +366,7 @@ Author: 0xAAE
                             <property name="relief">none</property>
                             <property name="image-position">top</property>
                             <property name="always-show-image">True</property>
-                            <property name="uri">http://glade.gnome.org</property>
+                            <property name="uri">https://vk.com/apps</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -384,7 +384,7 @@ Author: 0xAAE
                             <property name="relief">none</property>
                             <property name="image-position">top</property>
                             <property name="always-show-image">True</property>
-                            <property name="uri">http://glade.gnome.org</property>
+                            <property name="uri">https://vk.com/dev/fave.get</property>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -464,9 +464,6 @@ Author: 0xAAE
               </packing>
             </child>
             <child>
-              <placeholder/>
-            </child>
-            <child>
               <object class="GtkPaned" id="view_home">
                 <property name="visible">True</property>
                 <property name="can-focus">True</property>
@@ -524,7 +521,7 @@ Author: 0xAAE
               <packing>
                 <property name="name">page_view_home</property>
                 <property name="title" translatable="yes">Home</property>
-                <property name="position">2</property>
+                <property name="position">1</property>
               </packing>
             </child>
           </object>
