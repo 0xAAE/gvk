@@ -132,6 +132,24 @@ impl NewsUpdate {
                 };
                 // links
                 let links = extract_links(&src).await;
+                // text
+                let mut content = if let Some(text) = &src.text {
+                    process_text(text)
+                } else {
+                    String::new()
+                };
+                if content.is_empty() {
+                    if let Some(history) = &src.copy_history {
+                        for history_item in history {
+                            if let Some(text) = &history_item.text {
+                                if !text.is_empty() {
+                                    content = text.clone();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
                 // compose and return model
                 items.push(NewsItemModel {
                     author,
@@ -141,11 +159,7 @@ impl NewsUpdate {
                         "{}",
                         local_from_timestamp(src.date).format("%d.%m.%Y %H:%M (%a)")
                     ),
-                    content: if let Some(text) = src.text.as_ref() {
-                        process_text(text)
-                    } else {
-                        String::new()
-                    },
+                    content,
                     photos,
                     links,
                 })
