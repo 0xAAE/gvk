@@ -19,5 +19,9 @@ serde_json = "1.0"
 futures = "0.3"
 log = "0.4"
 env_logger = "0.8"
-# rvk = "0.19"
+# rvk = "0.19", use fork instead:
 rvk = { git = "https://github.com/0xAAE/rvk.git", branch = "research", features = ["trace_response"] }
+# the ssl library unused itself
+# but the next dependency fixes possible linking errors (undefined reference to `SSL_CTX_ctrl').
+# At least, on Ubuntu 20.04 installation
+openssl = { version = "0.10", features = ["vendored"] }
