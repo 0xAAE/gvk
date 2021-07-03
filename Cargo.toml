@@ -7,21 +7,21 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tokio = { version = "1", features = ["rt-multi-thread", "time", "fs", "macros"] }
+tokio = { version="1", features=["rt-multi-thread", "time", "fs", "macros"] }
 reqwest = "0.11"
-gtk = { version = "0.9", features = ["v3_16"] }
-gio = { version = "0.9", features = ["v2_44"] }
+gtk = { version="0.9", features=["v3_16"] }
+gio = { version="0.9", features=["v2_44"] }
 glib = "0.10"
-webkit2gtk = { version = "0.11" }
+webkit2gtk = { version="0.11" }
 chrono = "0.4"
-serde = { version = "1.0", features = ["derive"] }
+serde = { version="1.0", features=["derive"] }
 serde_json = "1.0"
 futures = "0.3"
 log = "0.4"
 env_logger = "0.8"
 # rvk = "0.19", use fork instead:
-rvk = { git = "https://github.com/0xAAE/rvk.git", branch = "research", features = ["trace_response"] }
+rvk = { git="https://github.com/0xAAE/rvk.git", branch="dev", features=["trace_response"] }
 # the ssl library unused itself
 # but the next dependency fixes possible linking errors (undefined reference to `SSL_CTX_ctrl').
 # At least, on Ubuntu 20.04 installation
-openssl = { version = "0.10", features = ["vendored"] }
+openssl = { version="0.10", features=["vendored"] }
